@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0a0400">
+<title>กูจะลากมึงเอง</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Sarabun:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ═══ ROOT ═══ */
+:root{
+  --bg:#080501;
+  --s1:#100900;
+  --s2:#180e00;
+  --s3:#201400;
+  --fire:#ff6b2b;
+  --fire2:#ff3d00;
+  --amber:#ffb040;
+  --og:rgba(255,107,43,0.12);
+  --red:#ef3030;
+  --green:#22c060;
+  --blue:#3a90f0;
+  --t1:#f5ede0;
+  --t2:#a08060;
+  --t3:#604030;
+  --border:rgba(255,107,43,0.1);
+  --border2:rgba(255,107,43,0.22);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{overflow-x:hidden}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;-webkit-font-smoothing:antialiased}
+.app{max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:90px;position:relative}
+.hide{display:none!important}
+
+/* Noise */
+.app::after{content:'';position:fixed;inset:0;max-width:430px;left:50%;transform:translateX(-50%);
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:998}
+
+/* ═══ HEADER ═══ */
+.hdr{position:sticky;top:0;z-index:200;background:rgba(8,5,1,0.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:12px 18px 10px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;background:linear-gradient(90deg,var(--fire),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:ls 4s linear infinite;background-size:200%}
+@keyframes ls{0%{background-position:0%}100%{background-position:200%}}
+.logo-sub{font-size:8px;color:var(--t3);letter-spacing:3px;text-transform:uppercase;margin-top:1px;font-weight:700}
+
+/* XP bar strip under header */
+.xp-strip{height:2px;background:rgba(255,107,43,0.06);position:relative;overflow:hidden}
+.xp-strip-fill{height:100%;background:linear-gradient(90deg,var(--fire),var(--amber));transition:width 1.5s cubic-bezier(0.23,1,.32,1)}
+
+/* ═══ BOTTOM NAV ═══ */
+.bnav{position:fixed;bottom:0;max-width:430px;width:100%;left:50%;transform:translateX(-50%);background:rgba(8,5,1,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:8px 0 22px;z-index:300}
+.nb{display:flex;flex-direction:column;align-items:center;gap:3px;width:20%;border:none;background:none;cursor:pointer;color:var(--t3);font-size:8px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;font-family:'Sarabun',sans-serif;transition:color .2s;padding:5px 0;-webkit-user-select:none;user-select:none}
+.nb .ni{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.nb.on{color:var(--fire)}
+.nb.on .ni{background:var(--og);transform:scale(1.12) translateY(-2px)}
+
+/* ═══ TOAST ═══ */
+#toast{position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--s2);border:1px solid var(--border2);color:var(--t1);padding:10px 20px;border-radius:50px;font-size:12px;font-weight:700;z-index:9999;opacity:0;pointer-events:none;transition:all .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:380px;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.err{border-color:var(--red);color:var(--red)}
+#toast.ok{border-color:var(--green);color:var(--green)}
+#toast.fire{border-color:var(--amber);color:var(--amber)}
+
+/* ═══ TABS ═══ */
+.tab{padding:18px;position:relative;z-index:1}
+.fu{animation:fu .32s ease both}
+@keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ CARDS ═══ */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:16px;position:relative;overflow:hidden}
+.card-fire{border-color:rgba(255,107,43,0.3);background:rgba(255,107,43,0.04)}
+.card-green{border-color:rgba(34,192,96,0.25);background:rgba(34,192,96,0.04)}
+.card-blue{border-color:rgba(58,144,240,0.25);background:rgba(58,144,240,0.04)}
+.card-red{border-color:rgba(239,48,48,0.25);background:rgba(239,48,48,0.04)}
+
+/* Glow orb */
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(40px);opacity:.3}
+
+/* ═══ SECTION LABEL ═══ */
+.sec{font-size:9px;font-weight:800;letter-spacing:3px;color:var(--t3);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* ═══ INPUTS ═══ */
+.inp{background:var(--s2);border:1px solid var(--border2);border-radius:12px;color:var(--t1);font-family:'Sarabun',sans-serif;font-weight:600;width:100%;padding:12px 14px;font-size:14px;transition:border-color .2s;-webkit-appearance:none}
+.inp:focus{outline:none;border-color:var(--fire)}
+.inp::placeholder{color:var(--t3)}
+select.inp option{background:#180e00}
+.ilabel{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);margin-bottom:6px;display:block}
+.ilabel.fire{color:var(--fire)}
+.big-n{background:transparent;border:none;color:var(--t1);font-family:'Bebas Neue',sans-serif;font-size:60px;width:100%;text-align:center;outline:none;letter-spacing:2px}
+.big-n::placeholder{color:var(--t3)}
+
+/* ═══ BUTTONS ═══ */
+.btn{background:linear-gradient(135deg,var(--fire2),var(--fire));color:#fff;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;padding:14px;border-radius:14px;border:none;cursor:pointer;width:100%;transition:all .2s;box-shadow:0 6px 24px rgba(255,107,43,0.2)}
+.btn:active{transform:scale(.97)}
+.btn2{background:var(--s2);border:1px solid var(--border2);color:var(--t2);font-size:11px;font-weight:700;padding:9px 14px;border-radius:10px;cursor:pointer;transition:all .2s;font-family:'Sarabun',sans-serif}
+.btn2:hover{border-color:var(--fire);color:var(--fire)}
+.btn-danger{background:rgba(239,48,48,0.08);border:1px solid rgba(239,48,48,0.25);color:var(--red);font-size:12px;font-weight:700;padding:12px;border-radius:12px;cursor:pointer;width:100%;transition:all .2s;font-family:'Sarabun',sans-serif}
+.btn-danger:active{transform:scale(.97)}
+
+/* ═══ BADGE ═══ */
+.bdg{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;padding:3px 9px;border-radius:50px}
+.bo{background:rgba(255,107,43,0.1);color:var(--fire);border:1px solid rgba(255,107,43,0.2)}
+.bg{background:rgba(34,192,96,0.1);color:var(--green);border:1px solid rgba(34,192,96,0.2)}
+.bb{background:rgba(58,144,240,0.1);color:var(--blue);border:1px solid rgba(58,144,240,0.2)}
+.br{background:rgba(239,48,48,0.1);color:var(--red);border:1px solid rgba(239,48,48,0.2)}
+.bam{background:rgba(255,176,64,0.1);color:var(--amber);border:1px solid rgba(255,176,64,0.2)}
+
+/* ═══ MODE TOGGLE ═══ */
+.mode-row{display:flex;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:3px;gap:3px}
+.mode-opt{flex:1;text-align:center;padding:9px 4px;font-size:10px;font-weight:800;border-radius:9px;cursor:pointer;color:var(--t3);transition:all .2s;-webkit-user-select:none;user-select:none}
+.mode-opt.on{background:var(--s3);color:var(--t1)}
+
+/* ═══ EQ BUTTONS ═══ */
+.eq-btn{background:var(--s2);border:1px solid var(--border);border-radius:11px;padding:9px 12px;font-size:11px;font-weight:700;color:var(--t3);cursor:pointer;transition:all .2s;display:flex;justify-content:space-between;align-items:center;font-family:'Sarabun',sans-serif;-webkit-user-select:none;user-select:none}
+.eq-btn.on{background:var(--og);border-color:rgba(255,107,43,0.35);color:var(--fire)}
+
+/* ═══ WORKOUT CARD ═══ */
+.wk{background:var(--s1);border:1px solid var(--border);border-radius:15px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none}
+.wk:active{transform:scale(.98);border-color:var(--fire)}
+.wk-num{font-family:'Bebas Neue';font-size:32px;color:var(--t3);line-height:1}
+.rpe-t{height:3px;background:rgba(255,255,255,0.05);border-radius:100px;overflow:hidden;margin-top:8px}
+.rpe-f{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--green),var(--fire),var(--red))}
+
+/* ═══ STAT BAR ═══ */
+.sb-row{margin-bottom:10px}
+.sb-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.sb-name{font-size:11px;font-weight:700;color:var(--t2)}
+.sb-val{font-family:'Bebas Neue';font-size:16px;color:var(--t1)}
+.sb-track{height:7px;background:rgba(255,255,255,0.05);border-radius:100px;overflow:hidden;border:1px solid rgba(255,255,255,0.03)}
+.sb-fill{height:100%;border-radius:100px;transition:width 1.5s cubic-bezier(.23,1,.32,1)}
+
+/* ═══ HISTORY ROW ═══ */
+.hist{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:13px;display:flex;justify-content:space-between;align-items:center}
+
+/* ═══ TIMER MODAL ═══ */
+#timerModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:8000;align-items:flex-end;justify-content:center;max-width:430px;left:50%;transform:translateX(-50%)}
+#timerModal.show{display:flex}
+.t-sheet{background:var(--s1);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:26px 20px 48px;width:100%;animation:shu .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes shu{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.t-num{font-family:'Bebas Neue';font-size:90px;text-align:center;line-height:1;color:var(--fire);transition:color .3s}
+.t-bar{height:4px;background:var(--s2);border-radius:100px;overflow:hidden;margin:14px 0}
+.t-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--fire));border-radius:100px;transition:width 1s linear}
+
+/* ═══ PROGRESS ═══ */
+.ptrack{background:var(--s2);border-radius:100px;height:6px;overflow:hidden}
+.pfill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--fire2),var(--fire));transition:width 1.2s cubic-bezier(.23,1,.32,1)}
+
+/* ═══ CALENDAR ═══ */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cd{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+
+/* ═══ WATER ═══ */
+.wcup{width:26px;height:32px;border:2px solid rgba(58,144,240,0.2);border-radius:3px 3px 7px 7px;position:relative;overflow:hidden;cursor:pointer;transition:all .2s}
+.wcup.f{border-color:var(--blue)}
+.wcup.f::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(58,144,240,0.55),rgba(58,144,240,0.15));border-radius:1px 1px 5px 5px}
+
+/* ═══ SETTINGS ═══ */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:13px;font-weight:700;color:var(--t1)}
+.setting-sub{font-size:10px;color:var(--t2);margin-top:2px}
+/* Toggle switch */
+.toggle{width:44px;height:24px;background:var(--s3);border-radius:50px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;border:1px solid var(--border2)}
+.toggle.on{background:var(--fire)}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:2px;left:3px;transition:left .2s}
+.toggle.on::after{left:22px}
+
+/* ═══ READINESS ═══ */
+.chk-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.chk-row:last-child{border-bottom:none}
+.chk-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
+.cp{background:rgba(34,192,96,0.12);border:1px solid rgba(34,192,96,0.25)}
+.cf{background:rgba(239,48,48,0.1);border:1px solid rgba(239,48,48,0.2)}
+.cw{background:rgba(255,176,64,0.1);border:1px solid rgba(255,176,64,0.2)}
+
+/* ═══ SETUP ═══ */
+.setup-wrap{min-height:100vh;padding:40px 20px 100px;display:flex;flex-direction:column}
+
+/* ═══ SMARTWATCH ═══ */
+@media(max-width:220px),(max-height:280px){
+  .bnav{padding:5px 0 8px}.nb .ni{width:28px;height:28px;font-size:15px}.nb span{display:none}
+  .hdr{padding:6px 10px}.logo-sub{display:none}.hdr-right{display:none}
+  .tab{padding:8px}.sec,.lore{display:none}
+}
+@media(max-width:160px),(max-height:220px){
+  .logo{font-size:14px}.nb .ni{width:22px;height:22px;font-size:12px}.card{padding:8px}
+}
+</style>
+</head>
+<body>
+
+<div id="toast">—</div>
+
+<!-- TIMER -->
+<div id="timerModal">
+  <div class="t-sheet">
+    <p style="text-align:center;font-size:9px;font-weight:700;letter-spacing:3px;color:var(--t3);text-transform:uppercase;margin-bottom:4px">Rest Timer</p>
+    <div class="t-num" id="tNum">60</div>
+    <div class="t-bar"><div class="t-fill" id="tBar" style="width:100%"></div></div>
+    <p style="text-align:center;font-size:10px;color:var(--t2);font-weight:600;margin-bottom:14px" id="tEx">—</p>
+    <div style="display:flex;gap:10px">
+      <button class="btn2" style="flex:1" onclick="stopTimer()">ข้ามพัก</button>
+      <button class="btn" style="flex:1;font-size:14px" onclick="stopTimer()">พร้อมแล้ว ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- ═══ HEADER ═══ -->
+<header class="hdr hide" id="appHdr">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div class="logo">กูจะลากมึงเอง</div>
+      <div class="logo-sub">Trainer Protocol</div>
+    </div>
+    <div id="hdrRight" style="text-align:right">
+      <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">
+        <span style="font-family:'Bebas Neue';font-size:20px;color:var(--fire)" id="hLv">LV1</span>
+        <span style="font-size:10px;font-weight:700;color:var(--t2)" id="hClass">Beginner</span>
+      </div>
+      <span style="font-size:9px;color:var(--t3);font-weight:600" id="hXpText">0/100 XP</span>
+    </div>
+  </div>
+  <div class="xp-strip" style="margin-top:8px;border-radius:100px">
+    <div class="xp-strip-fill" id="xpStripFill" style="width:3%"></div>
+  </div>
+</header>
+
+<!-- ═══ SETUP ═══ -->
+<div id="setupScreen" class="hide">
+  <div class="setup-wrap">
+    <div style="text-align:center;margin-bottom:28px;margin-top:20px">
+      <div style="font-size:58px;display:inline-block;animation:fu .5s ease">💀</div>
+      <h1 style="font-family:'Bebas Neue';font-size:32px;letter-spacing:3px;color:var(--fire);margin-top:8px;line-height:1">กูจะลากมึงเอง</h1>
+      <p style="font-size:12px;color:var(--t2);margin-top:6px;line-height:1.7;max-width:280px;margin-left:auto;margin-right:auto">กรอกความจริง แล้วโค้ชจะตามลากมึงออกไปออกกำลังกาย</p>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <span class="ilabel" style="margin-bottom:10px">ชื่อของคุณ</span>
+      <input type="text" id="sName" class="inp" placeholder="ชื่อ / ชื่อเล่น">
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <span class="ilabel fire" style="margin-bottom:8px">⚡ เป้าหมายหลัก</span>
+      <select id="sGoal" class="inp">
+        <option value="weight_loss">ลดน้ำหนัก + สร้างกล้ามเนื้อ</option>
+        <option value="run_10k">Mini Marathon 10K</option>
+        <option value="run_21k">Half Marathon 21K</option>
+        <option value="run_42k">Full Marathon 42K</option>
+      </select>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div class="card">
+        <span class="ilabel" style="margin-bottom:6px">น้ำหนักเริ่ม (KG)</span>
+        <input type="number" step=".1" id="sWt" class="inp" style="text-align:center;font-family:'Bebas Neue';font-size:26px" placeholder="75.0">
+      </div>
+      <div class="card">
+        <span class="ilabel fire" style="margin-bottom:6px">เป้าหมาย (KG)</span>
+        <input type="number" step=".1" id="sTg" class="inp" style="text-align:center;font-family:'Bebas Neue';font-size:26px;color:var(--fire)" placeholder="65.0">
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <span class="ilabel" style="margin-bottom:6px">ระยะเวลา (เดือน)</span>
+      <input type="number" id="sMo" class="inp" style="text-align:center" placeholder="3">
+    </div>
+
+    <button class="btn" onclick="startSetup()" style="font-size:16px">💀 ให้โค้ชลากไปเลย</button>
+    <p style="text-align:center;font-size:10px;color:var(--t3);margin-top:12px">มีข้อมูลเก่า? ไปที่ ⚙ ตั้งค่า → กู้คืนข้อมูล</p>
+  </div>
+</div>
+
+<!-- ═══ HOME ═══ -->
+<div id="tabHome" class="tab hide fu">
+
+  <!-- WEIGHT HERO CARD -->
+  <div class="card card-fire" style="margin-bottom:14px;padding:20px">
+    <div class="orb" style="width:120px;height:120px;background:var(--fire);top:-40px;right:-40px;opacity:.2"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div>
+        <p style="font-size:9px;color:var(--t3);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">น้ำหนักตอนนี้</p>
+        <div style="display:flex;align-items:baseline;gap:5px">
+          <span style="font-family:'Bebas Neue';font-size:62px;line-height:1" id="dWt">0.0</span>
+          <span style="font-size:15px;color:var(--t3)">KG</span>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px">
+          <span class="bdg bo">เป้า <span id="dTg">0</span> kg</span>
+          <span class="bdg bam" id="dDiff">เหลือ 0 kg</span>
+        </div>
+      </div>
+      <!-- Mini ring -->
+      <div style="position:relative;display:inline-flex;align-items:center;justify-content:center">
+        <svg width="74" height="74" viewBox="0 0 74 74">
+          <circle cx="37" cy="37" r="29" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="5"/>
+          <circle cx="37" cy="37" r="29" fill="none" stroke="url(#fg)" stroke-width="5"
+            stroke-linecap="round" stroke-dasharray="182" id="circP" stroke-dashoffset="182"
+            style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset 1.2s cubic-bezier(.23,1,.32,1)"/>
+          <defs><linearGradient id="fg"><stop offset="0%" stop-color="#ff3d00"/><stop offset="100%" stop-color="#ffb040"/></linearGradient></defs>
+        </svg>
+        <div style="position:absolute;text-align:center">
+          <div style="font-family:'Bebas Neue';font-size:17px;color:var(--fire)" id="circPct">0%</div>
+          <div style="font-size:7px;color:var(--t3);font-weight:700;letter-spacing:1px">DONE</div>
+        </div>
+      </div>
+    </div>
+    <div class="ptrack"><div class="pfill" id="progFill" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;margin-top:5px">
+      <span style="font-size:9px;color:var(--t3);font-weight:600" id="dStartLbl">เริ่ม 0 kg</span>
+      <span style="font-size:9px;color:var(--fire);font-weight:600" id="dTgLbl">เป้า 0 kg</span>
+    </div>
+  </div>
+
+  <!-- STREAK + WATER -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+    <div class="card" style="padding:14px">
+      <p style="font-size:9px;color:var(--t3);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">🔥 Streak</p>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:26px">🔥</span>
+        <div>
+          <div style="font-family:'Bebas Neue';font-size:38px;color:var(--fire);line-height:1" id="dStreak">0</div>
+          <div style="font-size:8px;color:var(--t3);font-weight:700;letter-spacing:1px">DAYS</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="padding:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+        <p style="font-size:9px;color:var(--t3);font-weight:700;letter-spacing:1px;text-transform:uppercase">💧 น้ำ</p>
+        <span style="font-size:11px;font-weight:700;color:var(--blue)" id="wCount">0/8</span>
+      </div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap" id="wCups"></div>
+    </div>
+  </div>
+
+  <!-- TODAY MISSION -->
+  <div class="sec">ภารกิจวันนี้</div>
+  <div class="card" style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px">
+    <span style="font-size:24px">🥩</span>
+    <div>
+      <p style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Nutrition</p>
+      <p style="font-size:11px;color:var(--t2);line-height:1.6">IF 16/8 · น้ำ 3-4 ลิตร<br><b style="color:var(--t1)">โปรตีน:</b> 1.5g × น้ำหนักตัว<br><span style="color:var(--red)">ห้าม:</span> ของทอด · น้ำหวาน · แอลกอฮอล์</p>
+    </div>
+  </div>
+
+  <!-- Run card (conditional) -->
+  <div class="card card-blue hide" id="homeRunCard" style="margin-bottom:10px;border-left:3px solid rgba(58,144,240,0.5)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <p style="font-size:10px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:1px">🏃 Run Mission วันนี้</p>
+      <span class="bdg bb" id="homeRunDay">วันนี้</span>
+    </div>
+    <p style="font-size:15px;font-weight:900;color:var(--t1);margin-bottom:3px" id="homeRunTitle">—</p>
+    <p style="font-size:11px;color:var(--t2)" id="homeRunDesc">—</p>
+    <button onclick="switchTab('tabPlan',2)" class="bdg bb" style="margin-top:10px;cursor:pointer;font-size:9px">ดูตาราง →</button>
+  </div>
+
+  <!-- Stats row -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+    <div class="card" style="text-align:center;padding:12px">
+      <div style="font-size:8px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">บันทึก</div>
+      <div style="font-family:'Bebas Neue';font-size:28px;color:var(--fire)" id="sLogs">0</div>
+      <div style="font-size:8px;color:var(--t3)">วัน</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px">
+      <div style="font-size:8px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">ลดได้</div>
+      <div style="font-family:'Bebas Neue';font-size:28px;color:var(--green)" id="sLost">0.0</div>
+      <div style="font-size:8px;color:var(--t3)">KG</div>
+    </div>
+    <div class="card" style="text-align:center;padding:12px">
+      <div style="font-size:8px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">วิ่งรวม</div>
+      <div style="font-family:'Bebas Neue';font-size:28px;color:var(--blue)" id="sKm">0</div>
+      <div style="font-size:8px;color:var(--t3)">KM</div>
+    </div>
+  </div>
+
+  <!-- Calendar -->
+  <div class="sec">30 วันที่ผ่านมา</div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="cal" id="calGrid"></div>
+  </div>
+
+  <!-- Goal label -->
+  <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:11px 15px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1px">เป้าหมาย</span>
+    <span style="font-size:11px;color:var(--fire);font-weight:800;text-transform:uppercase" id="dGoal">—</span>
+  </div>
+</div>
+
+<!-- ═══ WORKOUT ═══ -->
+<div id="tabPlan" class="tab hide fu">
+
+  <!-- Run protocol (conditional) -->
+  <div id="runProto" class="card card-blue hide" style="margin-bottom:18px;border-left:3px solid rgba(58,144,240,0.5)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <p style="font-size:10px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:2px">Run Protocol</p>
+      <span class="bdg bb" id="planRunDay">วันนี้</span>
+    </div>
+    <p style="font-size:19px;font-weight:900;color:var(--t1);margin-bottom:3px" id="planRunTitle">—</p>
+    <p style="font-size:11px;color:var(--t2);margin-bottom:12px" id="planRunDesc">—</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:8px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">เป้าหมาย</div>
+        <div style="font-family:'Bebas Neue';font-size:22px;color:var(--blue)" id="planRunKm">0 KM</div>
+      </div>
+      <div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:8px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Zone</div>
+        <div style="font-family:'Bebas Neue';font-size:22px;color:var(--fire)" id="planRunZone">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EQ -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div>
+      <h2 style="font-size:16px;font-weight:800" id="planTitle">Strength Training</h2>
+      <p style="font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-top:2px">เลือกอุปกรณ์ที่มี</p>
+    </div>
+    <div style="background:var(--og);border:1px solid rgba(255,107,43,0.2);border-radius:10px;padding:6px 12px;text-align:center">
+      <div style="font-size:8px;color:var(--t3);font-weight:700;text-transform:uppercase">Difficulty</div>
+      <div style="font-family:'Bebas Neue';font-size:18px;color:var(--fire)">LV.<span id="planLv">1</span></div>
+    </div>
+  </div>
+  <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:18px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px" id="eqWrap"></div>
+  </div>
+  <div id="workoutWrap"></div>
+</div>
+
+<!-- ═══ LOG ═══ -->
+<div id="tabLog" class="tab hide fu">
+  <h2 style="font-size:20px;font-weight:900;margin-bottom:2px">บันทึกประจำวัน</h2>
+  <p style="font-size:9px;color:var(--t3);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:18px">โกหกได้ทุกคน แต่ไม่ได้ตัวเอง</p>
+
+  <!-- Run hint (conditional) -->
+  <div class="card card-blue hide" id="logRunHint" style="margin-bottom:14px;border-left:3px solid rgba(58,144,240,0.5)">
+    <p style="font-size:9px;color:var(--blue);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">🏃 เป้าหมายวิ่งวันนี้</p>
+    <p style="font-size:14px;font-weight:900" id="logRunText">—</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <!-- Date -->
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px">
+      <span style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1px">📅 วันที่</span>
+      <input type="date" id="logDate" onchange="updateLogHint()" style="background:transparent;border:none;color:var(--fire);font-weight:700;font-size:13px;outline:none;cursor:pointer;font-family:'Sarabun',sans-serif">
+    </div>
+
+    <!-- Weight -->
+    <div class="card">
+      <span class="ilabel fire" style="text-align:center;display:block;margin-bottom:2px">⚡ น้ำหนักเช้าวันนี้ — บังคับ!</span>
+      <div style="position:relative">
+        <input type="number" step=".1" id="logWt" class="big-n" placeholder="00.0">
+        <span style="position:absolute;right:14px;bottom:10px;font-size:13px;color:var(--t3);font-weight:600">KG</span>
+      </div>
+    </div>
+
+    <!-- Mode -->
+    <div class="card" style="padding:13px">
+      <span class="ilabel" style="margin-bottom:7px">วันนี้ซ้อมอะไร?</span>
+      <div class="mode-row">
+        <div class="mode-opt on" id="modeAll" onclick="setMode('all')">วิ่ง + เวท</div>
+        <div class="mode-opt" id="modeWt" onclick="setMode('weight')">เวทอย่างเดียว</div>
+        <div class="mode-opt" id="modeRest" onclick="setMode('rest')">วันพัก</div>
+      </div>
+    </div>
+
+    <!-- Run + HR -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="runDataRow">
+      <div class="card card-blue" style="padding:13px">
+        <span class="ilabel" style="color:var(--blue);margin-bottom:6px">🏃 ระยะ (KM)</span>
+        <input type="number" step=".1" id="logDist" onchange="updateXpPreview()" style="background:transparent;border:none;border-top:1px solid var(--border);padding:8px 0;font-family:'Bebas Neue';font-size:28px;color:var(--t1);width:100%;outline:none;text-align:center;margin-top:6px" placeholder="0.0">
+      </div>
+      <div class="card" style="padding:13px">
+        <span class="ilabel" style="margin-bottom:6px">❤️ Avg HR</span>
+        <input type="number" id="logHR" style="background:transparent;border:none;border-top:1px solid var(--border);padding:8px 0;font-family:'Bebas Neue';font-size:28px;color:var(--t1);width:100%;outline:none;text-align:center;margin-top:6px" placeholder="0">
+      </div>
+    </div>
+
+    <!-- Nutrition -->
+    <div class="card">
+      <span class="ilabel" style="margin-bottom:8px">โภชนาการ</span>
+      <input type="number" id="logCal" class="inp" style="margin-bottom:8px" placeholder="แคลอรี่ที่กินวันนี้ (เช่น 1800)">
+      <select id="logDiet" class="inp" onchange="updateXpPreview()">
+        <option value="perfect">นักบุญ — คุมอาหารเป๊ะ 100%</option>
+        <option value="bad">คนบาป — หลุดกินของอ้วน</option>
+      </select>
+    </div>
+
+    <!-- Note -->
+    <div class="card">
+      <span class="ilabel" style="margin-bottom:6px">📝 บันทึก (optional)</span>
+      <textarea id="logNote" class="inp" rows="2" style="resize:none;font-size:13px" placeholder="รู้สึกอย่างไร? PR ใหม่? ปวดตรงไหน?"></textarea>
+    </div>
+
+    <!-- XP preview -->
+    <div class="card card-fire" style="padding:12px 16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <span style="font-size:10px;font-weight:800;color:var(--t2)">XP ที่จะได้</span>
+        <span style="font-family:'Bebas Neue';font-size:24px;color:var(--amber)" id="xpPreview">+5 XP</span>
+      </div>
+      <p style="font-size:9px;color:var(--t3)" id="xpBreak">base 5 XP</p>
+    </div>
+
+    <button class="btn" onclick="processLog()">💀 ส่งข้อมูล · รับ XP</button>
+  </div>
+</div>
+
+<!-- ═══ MARATHON READINESS ═══ -->
+<div id="tabReady" class="tab hide fu">
+  <h2 style="font-size:20px;font-weight:900;margin-bottom:2px">Marathon Readiness</h2>
+  <p style="font-size:9px;color:var(--t3);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:18px">ร่างกายพร้อมแล้วหรือยัง?</p>
+
+  <!-- Big ring -->
+  <div style="text-align:center;margin-bottom:20px">
+    <div style="position:relative;display:inline-flex;align-items:center;justify-content:center">
+      <svg width="200" height="200" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="88" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="12"/>
+        <circle cx="100" cy="100" r="88" fill="none" stroke="url(#rg)" stroke-width="12"
+          stroke-linecap="round" stroke-dasharray="553" id="readyArc" stroke-dashoffset="553"
+          style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset 1.8s cubic-bezier(.23,1,.32,1)"/>
+        <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ef3030"/><stop offset="50%" stop-color="#ffb040"/><stop offset="100%" stop-color="#22c060"/></linearGradient></defs>
+      </svg>
+      <div style="position:absolute;text-align:center">
+        <div style="font-family:'Bebas Neue';font-size:48px;line-height:1" id="readyPct">0%</div>
+        <div style="font-size:8px;color:var(--t3);font-weight:700;letter-spacing:2px;text-transform:uppercase">Marathon Ready</div>
+        <div style="font-size:9px;font-weight:800;letter-spacing:1px;margin-top:2px" id="readyVerdict">CALCULATING</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verdict -->
+  <div class="card" id="verdictCard" style="border-left:3px solid var(--red);margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span style="font-size:32px" id="vEmoji">🔴</span>
+      <div>
+        <p style="font-size:13px;font-weight:900" id="vTitle">ยังไม่พร้อม</p>
+        <p style="font-size:10px;color:var(--t3);font-weight:700" id="vGoal">Marathon 42K</p>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--t2);line-height:1.7" id="vMsg">เริ่มบันทึกข้อมูลก่อน</p>
+  </div>
+
+  <!-- Checklist -->
+  <div class="sec">Readiness Checklist</div>
+  <div class="card" style="margin-bottom:16px"><div id="chkList"></div></div>
+
+  <!-- Improve plan -->
+  <div class="sec">แผนพัฒนา</div>
+  <div id="improvePlan" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+
+  <!-- Science -->
+  <div class="sec">หลักวิทยาศาสตร์</div>
+  <div class="card" style="border-color:rgba(58,144,240,0.2);background:rgba(58,144,240,0.03);margin-bottom:16px">
+    <p style="font-size:9px;font-weight:800;color:var(--blue);margin-bottom:10px;letter-spacing:2px;text-transform:uppercase">📖 รู้จักร่างกายตัวเอง</p>
+    <div style="font-size:11px;color:var(--t2);line-height:2" id="scienceInfo">—</div>
+  </div>
+
+  <!-- Stats + chart -->
+  <div class="sec">กราฟน้ำหนัก</div>
+  <div class="card" style="padding:14px 10px 10px;margin-bottom:16px">
+    <canvas id="wtChart" height="100" style="width:100%"></canvas>
+  </div>
+
+  <!-- History -->
+  <div class="sec">ประวัติการบันทึก</div>
+  <div id="histList" style="display:flex;flex-direction:column;gap:8px;padding-bottom:10px"></div>
+</div>
+
+<!-- ═══ SETTINGS ═══ -->
+<div id="tabSettings" class="tab hide fu">
+  <h2 style="font-size:20px;font-weight:900;margin-bottom:2px">ตั้งค่า</h2>
+  <p style="font-size:9px;color:var(--t3);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px">Settings</p>
+
+  <!-- Profile -->
+  <div class="sec">โปรไฟล์</div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+      <div style="width:52px;height:52px;border-radius:50%;background:var(--og);border:2px solid rgba(255,107,43,0.3);display:flex;align-items:center;justify-content:center;font-size:24px">💀</div>
+      <div>
+        <p style="font-size:16px;font-weight:900;color:var(--t1)" id="settNameDisp">—</p>
+        <p style="font-size:11px;color:var(--t2)" id="settGoalDisp">—</p>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-family:'Bebas Neue';font-size:22px;color:var(--fire)" id="settLvDisp">LV1</div>
+        <div style="font-size:9px;color:var(--t3);font-weight:700" id="settXpDisp">0 XP</div>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div><p class="setting-label">น้ำหนักเริ่มต้น</p><p class="setting-sub">ใช้ในการคำนวณ Progress</p></div>
+      <span style="font-family:'Bebas Neue';font-size:20px;color:var(--fire)" id="settStartWt">0 KG</span>
+    </div>
+    <div class="setting-row">
+      <div><p class="setting-label">น้ำหนักเป้าหมาย</p><p class="setting-sub">บอสสุดท้ายของคุณ</p></div>
+      <span style="font-family:'Bebas Neue';font-size:20px;color:var(--amber)" id="settTgWt">0 KG</span>
+    </div>
+    <div class="setting-row" style="border-bottom:none">
+      <div><p class="setting-label">จำนวนวันที่บันทึก</p><p class="setting-sub">ทุกวันนับ ทุกก้าวสำคัญ</p></div>
+      <span style="font-family:'Bebas Neue';font-size:20px;color:var(--green)" id="settTotalDays">0</span>
+    </div>
+  </div>
+
+  <!-- DATA MANAGEMENT — เน้นย้ำ -->
+  <div class="sec">💾 จัดการข้อมูล</div>
+  <div class="card" style="margin-bottom:12px;border-color:rgba(255,176,64,0.3);background:rgba(255,176,64,0.04)">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
+      <span style="font-size:28px">💾</span>
+      <div>
+        <p style="font-size:13px;font-weight:900;color:var(--amber);margin-bottom:4px">สำรองข้อมูล (Backup)</p>
+        <p style="font-size:11px;color:var(--t2);line-height:1.6">ก๊อปปี้โค้ดนี้ไปวางใน Notes หรือ Notepad บนเครื่องคุณ ถ้าแอปรีเซ็ตหรือเปิดบน browser ใหม่ ใช้โค้ดนี้กู้ข้อมูลได้</p>
+      </div>
+    </div>
+    <button class="btn" style="background:linear-gradient(135deg,#8b5e00,var(--amber));color:#1a0a00;font-size:14px;margin-bottom:8px" onclick="exportData()">📋 ก๊อปปี้โค้ด Backup ทันที</button>
+    <p style="font-size:9px;color:var(--t3);text-align:center">ทำทุกครั้งที่บันทึกข้อมูล เพื่อความปลอดภัย</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;border-color:rgba(58,144,240,0.25);background:rgba(58,144,240,0.03)">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
+      <span style="font-size:28px">📥</span>
+      <div>
+        <p style="font-size:13px;font-weight:900;color:var(--blue);margin-bottom:4px">กู้คืนข้อมูล (Restore)</p>
+        <p style="font-size:11px;color:var(--t2);line-height:1.6">วางโค้ด Backup ที่เคยก๊อปปี้ไว้ แล้วกดกู้คืน</p>
+      </div>
+    </div>
+    <textarea id="restoreArea" class="inp" rows="2" style="resize:none;font-size:11px;font-family:monospace;margin-bottom:8px" placeholder="วางโค้ด Backup ที่นี่..."></textarea>
+    <button class="btn" style="background:linear-gradient(135deg,#004080,var(--blue));font-size:14px" onclick="importData()">📥 กู้คืนข้อมูล</button>
+  </div>
+
+  <!-- Preferences -->
+  <div class="sec">การตั้งค่า</div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="setting-row">
+      <div><p class="setting-label">การแจ้งเตือน</p><p class="setting-sub">ให้โค้ชตามด่าทุกวัน</p></div>
+      <div class="toggle" id="togNotif" onclick="toggleSetting('notif')"></div>
+    </div>
+    <div class="setting-row">
+      <div><p class="setting-label">เสียงตอบรับ</p><p class="setting-sub">เสียงเมื่อ Level Up</p></div>
+      <div class="toggle on" id="togSound" onclick="toggleSetting('sound')"></div>
+    </div>
+    <div class="setting-row" style="border-bottom:none">
+      <div><p class="setting-label">เปลี่ยนโหมด</p><p class="setting-sub">กลับไปหน้าเลือกโหมด</p></div>
+      <button class="btn2" onclick="location.href='index.html'">เปลี่ยน →</button>
+    </div>
+  </div>
+
+  <!-- DANGER ZONE -->
+  <div class="sec" style="color:var(--red)">⚠️ Danger Zone</div>
+  <div class="card card-red" style="margin-bottom:20px">
+    <p style="font-size:12px;color:var(--t2);margin-bottom:14px;line-height:1.7">การลบข้อมูลไม่สามารถกู้คืนได้ ตรวจสอบให้แน่ใจว่าคุณ <b style="color:var(--amber)">ก๊อปปี้ Backup แล้ว</b> ก่อนลบ</p>
+    <button class="btn-danger" onclick="resetApp()">🗑️ ลบข้อมูลทั้งหมดและเริ่มใหม่</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav hide" id="bnav">
+  <button class="nb on" onclick="switchTab('tabHome',0)"><div class="ni">🏠</div><span>หน้าหลัก</span></button>
+  <button class="nb" onclick="switchTab('tabPlan',1)"><div class="ni">💪</div><span>ซ้อม</span></button>
+  <button class="nb" onclick="switchTab('tabLog',2)"><div class="ni">⚡</div><span>บันทึก</span></button>
+  <button class="nb" onclick="switchTab('tabReady',3)"><div class="ni">🏁</div><span>พร้อม?</span></button>
+  <button class="nb" onclick="switchTab('tabSettings',4)"><div class="ni">⚙️</div><span>ตั้งค่า</span></button>
+</nav>
+
+</div><!-- /app -->
+
+<script>
+/* ═══ CONSTANTS ═══ */
+const STORE='GJL_State';
+const XP_PER_LV=100;
+
+const LEVELS=[
+  {minLv:1,name:'มือใหม่',emoji:'🥔'},
+  {minLv:5,name:'เริ่มต้นแล้ว',emoji:'👟'},
+  {minLv:10,name:'นักวิ่งหัดใหม่',emoji:'🏃'},
+  {minLv:20,name:'Road Runner',emoji:'⚡'},
+  {minLv:35,name:'Half Beast',emoji:'💪'},
+  {minLv:50,name:'Marathon Ready',emoji:'🔥'},
+  {minLv:75,name:'BEAST MODE',emoji:'💀'},
+];
+
+const GOALS_TH={weight_loss:'ลดน้ำหนัก + เวทเทรนนิ่ง',run_10k:'Mini Marathon 10K',run_21k:'Half Marathon 21K',run_42k:'Full Marathon 42K'};
+
+const RUN_PLANS={
+  run_10k:[
+    {title:'Long Run 8-10K',desc:'วิ่งช้าๆ โซน 2 สร้างฐานความอึด',target:8,zone:'Zone 2'},
+    {title:'Rest / Cross Train',desc:'พักหรือเล่นเวทเบาๆ',target:0,zone:'Rest'},
+    {title:'Intervals 400m×6',desc:'วิ่งเร็ว 400m สลับจ๊อก 200m 6 รอบ',target:4,zone:'Zone 4-5'},
+    {title:'Easy Run 3-5K',desc:'วิ่งสบายๆ ผ่อนคลายกล้ามเนื้อ',target:3,zone:'Zone 2'},
+    {title:'Tempo 5K',desc:'วิ่งโซน 3 เหนื่อยหอบนิดๆ',target:5,zone:'Zone 3'},
+    {title:'Active Rest / Core',desc:'เล่นหน้าท้อง แพลงก์ ไม่ต้องวิ่ง',target:0,zone:'Recovery'},
+    {title:'Easy Run 3K',desc:'จ๊อกเบาๆ เตรียมพร้อม Long Run',target:3,zone:'Zone 1'}
+  ],
+  run_21k:[
+    {title:'LONG RUN 15-18K',desc:'คุมเพซให้คงที่ ซ้อมกินเจลและน้ำ',target:15,zone:'Zone 2-3'},
+    {title:'Rest / Cross Train',desc:'พักเต็มที่ ร่างกายต้องการซ่อมแซม',target:0,zone:'Rest'},
+    {title:'Speed 800m×6',desc:'วิ่งเร็ว 800m สลับจ๊อก 400m',target:7,zone:'Zone 4-5'},
+    {title:'Recovery Run 6K',desc:'วิ่งช้ามากๆ โซน 1-2',target:6,zone:'Zone 1'},
+    {title:'Tempo Run 8K',desc:'วอร์ม 2K → วิ่งแข่ง 6K → คูลดาวน์',target:8,zone:'Zone 3'},
+    {title:'Rest / Core',desc:'เวทช่วงล่าง + แกนกลาง',target:0,zone:'Strength'},
+    {title:'Easy 5K + Strides',desc:'วิ่งเบาๆ 5K + สปริ้นท์ 100m×4',target:5,zone:'Zone 2'}
+  ],
+  run_42k:[
+    {title:'THE LONG RUN 25-32K',desc:'นรกของจริง! วิ่งเพซมาราธอน ซ้อมโภชนาการ',target:25,zone:'Marathon Pace'},
+    {title:'Complete Rest',desc:'ห้ามใช้ขาเด็ดขาด! วันนี้นอนพักอย่างเดียว',target:0,zone:'Rest'},
+    {title:'Yasso 800s×8',desc:'วิ่งเร็ว 800m×8 รอบ พัก 3 นาที',target:8,zone:'Zone 5'},
+    {title:'Mid-Long 10-12K',desc:'วิ่งโซน 2 สะสมระยะทาง',target:10,zone:'Zone 2'},
+    {title:'Marathon Tempo 12K',desc:'วิ่งเพซเร็วกว่าเป้าหมายนิดหน่อย',target:12,zone:'Zone 3-4'},
+    {title:'Rest / Cross Train',desc:'เวทสร้างความแข็งแรงช่วงล่าง',target:0,zone:'Strength'},
+    {title:'Easy 6-8K',desc:'วิ่งเบาที่สุด เตรียมรับนรกวันพรุ่งนี้',target:6,zone:'Zone 1'}
+  ]
+};
+
+const DAYS_TH=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+
+const EXERCISES={
+  bodyweight:[
+    {n:'Jumping Jacks',s:1,r:'60s',rest:15,t:'Fast',rpe:6,eq:'Bodyweight',art:'🤸',hw:'ยืนตรง กระโดดกางขา-แขน สลับเร็วๆ'},
+    {n:'Air Squats',s:3,r:15,rest:45,t:'3-0-1-0',rpe:7,eq:'Bodyweight',art:'🦵',hw:'ยืนกางขาไหล่กว้าง นั่งลงช้าๆ 3 วิ เข่าไม่เกินนิ้วเท้า'},
+    {n:'Push-ups',s:3,r:10,rest:60,t:'2-1-1-0',rpe:8,eq:'Bodyweight',art:'💪',hw:'มือกว้างไหล่ ลำตัวตรง ลงช้า 2 วิ ดันขึ้นเร็ว'},
+    {n:'Plank',s:3,r:'45s',rest:30,t:'Hold',rpe:8,eq:'Bodyweight',art:'🧘',hw:'ข้อศอกตั้ง ลำตัวตรง หน้าท้องแน่น'},
+    {n:'Burpees',s:3,r:10,rest:60,t:'Explosive',rpe:9,eq:'Bodyweight',art:'🔥',hw:'ยืน → นอน → วิดพื้น → กระโดด → ปรบมือบนหัว'},
+    {n:'Lunges',s:3,r:'10/Leg',rest:45,t:'2-1-1-0',rpe:7,eq:'Bodyweight',art:'👟',hw:'ก้าวขาไปหน้า เข่าหลังเกือบถึงพื้น ตัวตรง'},
+    {n:'Mountain Climbers',s:3,r:'30s',rest:30,t:'Fast',rpe:8,eq:'Bodyweight',art:'🏔️',hw:'ท่าวิดพื้น วิ่งดึงเข่าเข้าหาอกสลับกันเร็วๆ'},
+    {n:'Hip Thrusts',s:3,r:15,rest:40,t:'2-2-1-0',rpe:7,eq:'Bodyweight',art:'🍑',hw:'นอนหงาย เท้าวางพื้น ยกสะโพกขึ้น บีบสะโพกค้างไว้ 2 วิ'},
+  ],
+  dumbbell:[
+    {n:'DB Goblet Squat',s:3,r:10,rest:60,t:'3-1-1-0',rpe:8,eq:'Dumbbell',art:'🏋️',hw:'จับ DB ไว้หน้าอก นั่งสควอทช้าๆ หลังตรง'},
+    {n:'DB Bench Press',s:3,r:10,rest:90,t:'2-0-1-1',rpe:8,eq:'Dumbbell',art:'💪',hw:'นอน DB ระดับไหล่ ดันขึ้นช้าๆ ข้อศอกไม่ล็อค'},
+    {n:'DB Rows',s:3,r:12,rest:60,t:'2-1-1-1',rpe:8,eq:'Dumbbell',art:'🚣',hw:'วางเข่าบนม้า ดึง DB ขึ้นข้างลำตัว ข้อศอกชิดตัว'},
+    {n:'DB RDL',s:3,r:10,rest:75,t:'3-1-1-0',rpe:8,eq:'Dumbbell',art:'🦴',hw:'ยืนตรง DB ถือหน้าขา ก้มช้าๆ รู้สึกเมื่อยต้นขาหลัง'},
+    {n:'DB Shoulder Press',s:3,r:10,rest:60,t:'2-0-1-0',rpe:8,eq:'Dumbbell',art:'🏆',hw:'DB ระดับไหล่ ดันขึ้นเหนือหัว ข้อศอกเหยียดไม่ล็อค'},
+  ],
+  barbell:[
+    {n:'Barbell Squat',s:3,r:8,rest:120,t:'3-1-1-0',rpe:8,eq:'Barbell',art:'⚖️',hw:'บาร์พาดบ่า กางขาไหล่กว้าง นั่งลงช้า หลังตรง'},
+    {n:'Barbell Deadlift',s:3,r:6,rest:120,t:'Hold',rpe:9,eq:'Barbell',art:'🏋️',hw:'เท้าใต้บาร์ ก้มจับ หลังตรง ดันขาขึ้น ไม่กระตุก'},
+    {n:'Barbell Bench Press',s:3,r:8,rest:120,t:'2-0-1-0',rpe:8,eq:'Barbell',art:'💪',hw:'จับกว้างไหล่ ลงแตะหน้าอก ดันขึ้นเร็ว'},
+  ],
+  kettlebell:[
+    {n:'KB Swings',s:4,r:15,rest:60,t:'Explosive',rpe:8,eq:'Kettlebell',art:'🔔',hw:'งอเอว (ไม่ใช่สควอท) แกว่ง KB ขึ้นด้วยสะโพก'},
+    {n:'KB Goblet Squat',s:3,r:12,rest:60,t:'3-1-1-0',rpe:8,eq:'Kettlebell',art:'🏆',hw:'จับ KB สองมือไว้หน้าอก นั่งสควอทลึก'},
+  ],
+  band:[
+    {n:'Band Pull-Aparts',s:3,r:15,rest:45,t:'2-1-2-1',rpe:7,eq:'Band',art:'〰️',hw:'จับยางทั้งสองข้าง ยืดออกช้าๆ บีบสะบักเข้าหากัน'},
+    {n:'Banded Squat',s:3,r:12,rest:60,t:'3-1-1-0',rpe:8,eq:'Band',art:'🦵',hw:'คล้องยางที่หัวเข่า นั่งสควอทโดยดันเข่าออก'},
+  ],
+  pullup:[{n:'Pull-ups',s:3,r:'Max',rest:120,t:'1-0-1-1',rpe:9,eq:'Pull Bar',art:'🔝',hw:'จับบาร์กว้างไหล่ ดึงขึ้นจนคางพ้นบาร์ ลงช้าๆ'}],
+  cable:[
+    {n:'Cable Face Pull',s:3,r:15,rest:45,t:'2-1-2-0',rpe:7,eq:'Cable',art:'🔌',hw:'เคเบิลระดับหน้า ดึงเข้าหาหน้า ข้อศอกขนานพื้น'},
+    {n:'Cable Woodchopper',s:3,r:12,rest:45,t:'1-1-1-0',rpe:7,eq:'Cable',art:'🪓',hw:'เคเบิลสูง ดึงเฉียงลงข้างล่าง หมุนลำตัว'},
+  ],
+  smith:[{n:'Smith Machine Squat',s:3,r:10,rest:60,t:'3-0-1-0',rpe:8,eq:'Smith',art:'🏗️',hw:'เท้าไว้หน้าบาร์นิดหน่อย นั่งลงช้าๆ'}],
+  trx:[{n:'TRX Row',s:3,r:12,rest:60,t:'2-1-2-0',rpe:8,eq:'TRX',art:'🎯',hw:'เอนตัวออก ดึงตัวเข้าหาด้ามจับ ข้อศอกชิดตัว'}],
+  medball:[{n:'Med Ball Slams',s:3,r:12,rest:45,t:'Explosive',rpe:9,eq:'MedBall',art:'⚽',hw:'ยกบอลเหนือหัว ขว้างลงพื้นด้วยแรงสุดตัว'}],
+};
+
+const EQ_LIST=[
+  {id:'bodyweight',name:'ร่างกายเปล่า',icon:'🧍'},
+  {id:'band',name:'ยางยืด',icon:'〰️'},
+  {id:'dumbbell',name:'ดัมเบล',icon:'🏋️'},
+  {id:'kettlebell',name:'เคตเทิลเบล',icon:'🔔'},
+  {id:'barbell',name:'บาร์เบล',icon:'⚖️'},
+  {id:'pullup',name:'บาร์โหน',icon:'🔝'},
+  {id:'cable',name:'เคเบิล',icon:'🔌'},
+  {id:'smith',name:'Smith Machine',icon:'🏗️'},
+  {id:'trx',name:'TRX',icon:'🎯'},
+  {id:'medball',name:'Med Ball',icon:'⚽'},
+];
+
+const READINESS_CRITERIA={
+  run_10k:[
+    {id:'weekly_vol',name:'Weekly Volume',desc:'วิ่งเฉลี่ย ≥ 20 KM/สัปดาห์',target:20,unit:'km/wk'},
+    {id:'long_run',name:'Long Run',desc:'วิ่งไกลสุด ≥ 8 KM (4 สัปดาห์ล่าสุด)',target:8,unit:'km'},
+    {id:'consistency',name:'Consistency',desc:'บันทึกอย่างน้อย 3 วัน/สัปดาห์',target:3,unit:'day/wk'},
+    {id:'streak',name:'Streak',desc:'Streak อย่างน้อย 7 วัน',target:7,unit:'days'},
+    {id:'total_km',name:'Total Mileage',desc:'วิ่งรวมทั้งหมด ≥ 50 KM',target:50,unit:'km total'},
+  ],
+  run_21k:[
+    {id:'weekly_vol',name:'Weekly Volume',desc:'วิ่งเฉลี่ย ≥ 35 KM/สัปดาห์',target:35,unit:'km/wk'},
+    {id:'long_run',name:'Long Run',desc:'วิ่งไกลสุด ≥ 16 KM (4 สัปดาห์ล่าสุด)',target:16,unit:'km'},
+    {id:'consistency',name:'Consistency',desc:'บันทึกอย่างน้อย 4 วัน/สัปดาห์',target:4,unit:'day/wk'},
+    {id:'streak',name:'Streak',desc:'Streak อย่างน้อย 14 วัน',target:14,unit:'days'},
+    {id:'total_km',name:'Total Mileage',desc:'วิ่งรวมทั้งหมด ≥ 200 KM',target:200,unit:'km total'},
+    {id:'lv_check',name:'Level Check',desc:'Character Level ≥ 20',target:20,unit:'level'},
+  ],
+  run_42k:[
+    {id:'weekly_vol',name:'Weekly Volume',desc:'วิ่งเฉลี่ย ≥ 60 KM/สัปดาห์',target:60,unit:'km/wk'},
+    {id:'long_run',name:'Long Run',desc:'วิ่งไกลสุด ≥ 30 KM (4 สัปดาห์ล่าสุด)',target:30,unit:'km'},
+    {id:'consistency',name:'Consistency',desc:'บันทึกอย่างน้อย 5 วัน/สัปดาห์',target:5,unit:'day/wk'},
+    {id:'streak',name:'Streak',desc:'Streak อย่างน้อย 30 วัน',target:30,unit:'days'},
+    {id:'total_km',name:'Total Mileage',desc:'วิ่งรวมทั้งหมด ≥ 500 KM',target:500,unit:'km total'},
+    {id:'lv_check',name:'Level Check',desc:'Character Level ≥ 35',target:35,unit:'level'},
+  ],
+  weight_loss:[
+    {id:'consistency',name:'Consistency',desc:'บันทึกอย่างน้อย 4 วัน/สัปดาห์',target:4,unit:'day/wk'},
+    {id:'streak',name:'Streak',desc:'Streak อย่างน้อย 7 วัน',target:7,unit:'days'},
+    {id:'total_sessions',name:'Total Sessions',desc:'บันทึกทั้งหมด ≥ 20 วัน',target:20,unit:'sessions'},
+    {id:'diet_ratio',name:'Diet Quality',desc:'อาหารดี ≥ 70% ของวันที่บันทึก',target:70,unit:'%'},
+  ],
+};
+
+const SCIENCE={
+  run_42k:`<b style="color:var(--t1)">10% Rule:</b> เพิ่มระยะทางสัปดาห์ละไม่เกิน 10% ป้องกันบาดเจ็บ<br><br><b style="color:var(--t1)">80/20 Rule:</b> วิ่ง 80% ช้า (Zone 1-2) / 20% เร็ว (Zone 4-5)<br><br><b style="color:var(--t1)">Yasso 800s:</b> วิ่ง 800m ใน X นาที → จบ 42K ใน X ชั่วโมง<br><br><b style="color:var(--t1)">Taper:</b> ลดระยะ 20-30% ใน 2-3 สัปดาห์ก่อนแข่ง<br><br><b style="color:var(--t1)">Zone 2 HR:</b> 180 - อายุ ± 5 BPM พูดได้ขณะวิ่ง`,
+  run_21k:`<b style="color:var(--t1)">Long Run สำคัญ:</b> ต้องวิ่งอย่างน้อย 1 ครั้ง ≥ 16-18 KM ก่อนแข่ง<br><br><b style="color:var(--t1)">Carb Loading:</b> เพิ่มคาร์บ 60-70% ใน 2-3 วันก่อนแข่ง<br><br><b style="color:var(--t1)">Zone 2:</b> สร้างฐาน Aerobic ให้แข็งแกร่ง`,
+  run_10k:`<b style="color:var(--t1)">Base Building:</b> Easy Run 3-4 วัน/สัปดาห์ก่อน<br><br><b style="color:var(--t1)">Speed Work:</b> Intervals ช่วยเพิ่มความเร็ว<br><br><b style="color:var(--t1)">Talk Test:</b> Easy Run ต้องพูดประโยคยาวๆ ได้โดยไม่หอบ`,
+  weight_loss:`<b style="color:var(--t1)">Caloric Deficit:</b> ลด 500 kcal/วัน = ลด 0.5 kg/สัปดาห์<br><br><b style="color:var(--t1)">Protein First:</b> กิน 1.6-2g/kg ป้องกันกล้ามเนื้อสลาย<br><br><b style="color:var(--t1)">Sleep:</b> นอนน้อยกว่า 7 ชม. → Cortisol สูง → อ้วนง่าย`,
+};
+
+/* ─── STATE ─── */
+let ST={isSetup:false,name:'',startWt:0,targetWt:0,months:0,goal:'weight_loss',
+  selectedEq:['bodyweight'],history:[],xp:0,userLevel:1,
+  waterToday:0,waterDate:'',prefs:{sound:true,notif:false}};
+
+const $=id=>document.getElementById(id);
+const tod=()=>{const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`};
+const save=()=>localStorage.setItem(STORE,JSON.stringify(ST));
+const curWt=()=>ST.history.length?ST.history[ST.history.length-1].weight:ST.startWt;
+const totalKm=()=>ST.history.reduce((s,l)=>s+(l.dist||0),0);
+const calcStreak=()=>{
+  if(!ST.history.length)return 0;
+  const s=[...ST.history].sort((a,b)=>b.dateRaw-a.dateRaw);
+  let sk=0,c=new Date();c.setHours(0,0,0,0);
+  for(const l of s){const d=new Date(l.dateRaw);d.setHours(0,0,0,0);const df=Math.round((c-d)/86400000);if(df===0||df===1){sk++;c=d;}else break;}
+  return sk;
+};
+const calcWeeklyKm=()=>ST.history.filter(l=>l.dateRaw>=Date.now()-7*86400000).reduce((s,l)=>s+(l.dist||0),0);
+const calcLongestRun=(days=28)=>ST.history.filter(l=>l.dateRaw>=Date.now()-days*86400000).reduce((m,l)=>Math.max(m,l.dist||0),0);
+const calcConsistency=()=>ST.history.filter(l=>l.dateRaw>=Date.now()-7*86400000).length;
+const calcDietRatio=()=>ST.history.length?(ST.history.filter(l=>l.diet==='perfect').length/ST.history.length)*100:0;
+const getLvCls=lv=>{let c=LEVELS[0];for(const l of LEVELS){if(lv>=l.minLv)c=l;}return c;};
+const getRunMission=d=>{if(!ST.goal.startsWith('run_'))return null;return RUN_PLANS[ST.goal]?.[d.getDay()]||null;};
+
+/* TOAST */
+let tTO;
+function showToast(msg,type='ok'){const t=$('toast');t.textContent=msg;t.className=type+' on';clearTimeout(tTO);tTO=setTimeout(()=>t.classList.remove('on'),3600);}
+
+/* TIMER */
+let tIv,tTot=60,tLeft=60;
+function startTimer(sec,name=''){clearInterval(tIv);tTot=sec;tLeft=sec;$('tEx').textContent=name;$('timerModal').classList.add('show');tickT();tIv=setInterval(()=>{tLeft--;tickT();if(tLeft<=0)stopTimer();},1000);}
+function tickT(){$('tNum').textContent=tLeft;$('tBar').style.width=(tLeft/tTot*100)+'%';$('tNum').style.color=tLeft<=5?'var(--red)':tLeft<=15?'var(--amber)':'var(--fire)';}
+function stopTimer(){clearInterval(tIv);$('timerModal').classList.remove('show');}
+
+/* INIT */
+function initApp(){
+  $('logDate').value=tod();
+  const raw=localStorage.getItem(STORE);
+  if(raw){try{const p=JSON.parse(raw);if(p.isSetup){ST={...ST,...p};if(!ST.prefs)ST.prefs={sound:true,notif:false};bootDash();return;}}catch(e){}}
+  $('setupScreen').classList.remove('hide');
+}
+
+/* SETUP */
+function startSetup(){
+  const n=$('sName').value.trim(),w=parseFloat($('sWt').value),t=parseFloat($('sTg').value),m=parseInt($('sMo').value),g=$('sGoal').value;
+  if(!n||!w||!t||!m)return showToast('กรอกให้ครบก่อนเลย!','err');
+  if(w<=t)return showToast('น้ำหนักเริ่มต้องมากกว่าเป้า!','err');
+  if((w-t)/m>5)return showToast(`ลด ${((w-t)/m).toFixed(1)}kg/เดือน? มากไป!`,'err');
+  ST={...ST,name:n,startWt:w,targetWt:t,months:m,goal:g,isSetup:true,xp:0,userLevel:1,history:[],selectedEq:['bodyweight'],waterToday:0,waterDate:''};
+  save();$('setupScreen').classList.add('hide');bootDash();showToast(`โค้ชพร้อมลากมึงแล้ว ${n}!`,'fire');
+}
+
+/* DATA */
+function exportData(){
+  if(!ST.isSetup)return showToast('ยังไม่มีข้อมูล','err');
+  const s=btoa(JSON.stringify(ST));
+  navigator.clipboard.writeText(s).then(()=>showToast('✅ ก๊อปปี้ Backup แล้ว! เก็บไว้ใน Notes','ok'))
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=s;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ ก๊อปปี้ Backup แล้ว!','ok');});
+}
+
+function importData(){
+  const raw=$('restoreArea').value.trim();
+  if(!raw)return showToast('ใส่โค้ด Backup ก่อน!','err');
+  try{
+    const p=JSON.parse(atob(raw));
+    if(p.isSetup&&p.name){ST={...ST,...p};if(!ST.prefs)ST.prefs={sound:true,notif:false};save();$('setupScreen').classList.add('hide');showToast('✅ กู้ข้อมูลสำเร็จ!','ok');bootDash();}
+    else throw'';
+  }catch(e){showToast('❌ โค้ดพัง! ลองอีกครั้ง','err');}
+}
+
+function resetApp(){
+  if(confirm('ยืนยัน: ลบข้อมูลทั้งหมด?\n\n⚠️ คุณ Backup แล้วหรือยัง? ถ้ายังให้ไปที่ ตั้งค่า → ก๊อปปี้ Backup ก่อน!')){
+    localStorage.removeItem(STORE);location.reload();
+  }
+}
+
+/* SETTINGS */
+function toggleSetting(key){
+  ST.prefs[key]=!ST.prefs[key];save();
+  const el=$('tog'+key.charAt(0).toUpperCase()+key.slice(1));
+  el.classList.toggle('on',ST.prefs[key]);
+}
+
+/* BOOT */
+function bootDash(){
+  $('bnav').classList.remove('hide');
+  $('appHdr').classList.remove('hide');
+  switchTab('tabHome',0);
+  updateAllUI();
+  initWater();
+  renderCalendar();
+  setTimeout(renderChart,200);
+}
+
+function updateAllUI(){
+  updateHeader();
+  updateHome();
+  updateSettingsTab();
+  updateReadiness();
+  renderHistory();
+}
+
+function updateHeader(){
+  const lv=ST.userLevel,cls=getLvCls(lv),xpIn=ST.xp%XP_PER_LV;
+  $('hLv').textContent='LV'+lv;
+  $('hClass').textContent=cls.name;
+  $('hXpText').textContent=`${xpIn}/${XP_PER_LV} XP`;
+  $('xpStripFill').style.width=Math.max(3,(xpIn/XP_PER_LV)*100)+'%';
+  $('planLv').textContent=lv;
+}
+
+function updateHome(){
+  const cw=curWt(),diff=ST.startWt-ST.targetWt,done=Math.max(0,ST.startWt-cw);
+  const pct=diff>0?Math.min(100,(done/diff)*100):0;
+  $('dWt').textContent=cw.toFixed(1);
+  $('dTg').textContent=ST.targetWt;
+  $('dDiff').textContent=`เหลือ ${Math.max(0,cw-ST.targetWt).toFixed(1)} kg`;
+  $('dGoal').textContent=GOALS_TH[ST.goal];
+  $('dStartLbl').textContent=`เริ่ม ${ST.startWt} kg`;
+  $('dTgLbl').textContent=`เป้า ${ST.targetWt} kg`;
+  $('progFill').style.width=pct+'%';
+  $('dStreak').textContent=calcStreak();
+  const circ=182;$('circP').style.strokeDashoffset=circ-(circ*pct/100);$('circPct').textContent=Math.round(pct)+'%';
+  const tKm=totalKm(),lost=Math.max(0,ST.startWt-cw);
+  $('sLogs').textContent=ST.history.length;$('sLost').textContent=lost.toFixed(1);$('sKm').textContent=Math.round(tKm);
+  if(ST.goal.startsWith('run_')){
+    $('homeRunCard').classList.remove('hide');
+    const m=getRunMission(new Date());
+    if(m){$('homeRunDay').textContent='วัน'+DAYS_TH[new Date().getDay()];$('homeRunTitle').textContent=m.title;$('homeRunDesc').textContent=m.desc;}
+    $('runProto').classList.remove('hide');
+    if(m){$('planRunDay').textContent='วัน'+DAYS_TH[new Date().getDay()];$('planRunTitle').textContent=m.title;$('planRunDesc').textContent=m.desc;$('planRunKm').textContent=m.target+' KM';$('planRunZone').textContent=m.zone||'-';}
+    $('planTitle').textContent='Cross-Training เสริม';
+    updateLogHint();
+  }else{$('homeRunCard').classList.add('hide');$('runProto').classList.add('hide');$('logRunHint').classList.add('hide');$('planTitle').textContent='Strength Training';}
+}
+
+function updateSettingsTab(){
+  const lv=ST.userLevel,cls=getLvCls(lv);
+  $('settNameDisp').textContent=ST.name||'—';
+  $('settGoalDisp').textContent=GOALS_TH[ST.goal]||'—';
+  $('settLvDisp').textContent='LV'+lv+' '+cls.emoji;
+  $('settXpDisp').textContent=ST.xp+' XP รวม';
+  $('settStartWt').textContent=ST.startWt+' KG';
+  $('settTgWt').textContent=ST.targetWt+' KG';
+  $('settTotalDays').textContent=ST.history.length;
+  if($('togNotif'))$('togNotif').classList.toggle('on',ST.prefs?.notif);
+  if($('togSound'))$('togSound').classList.toggle('on',ST.prefs?.sound);
+}
+
+/* WATER */
+function initWater(){if(ST.waterDate!==tod()){ST.waterToday=0;ST.waterDate=tod();save();}renderWater();}
+function renderWater(){
+  const c=$('wCups'),w=$('wCount');if(!c)return;c.innerHTML='';
+  for(let i=0;i<8;i++){
+    const cup=document.createElement('div');cup.className='wcup'+(i<ST.waterToday?' f':'');
+    cup.onclick=()=>{ST.waterToday=i<ST.waterToday?i:i+1;if(ST.waterToday===8)showToast('💧 ดื่มน้ำครบ 8 แก้ว! +5 XP','ok');save();renderWater();};
+    c.appendChild(cup);
+  }
+  if(w)w.textContent=`${ST.waterToday}/8`;
+}
+
+/* CALENDAR */
+function renderCalendar(){
+  const g=$('calGrid');if(!g)return;g.innerHTML='';
+  const ls=new Set(ST.history.map(h=>{const d=new Date(h.dateRaw);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}));
+  for(let i=29;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const s=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const el=document.createElement('div');
+    el.className='cd';
+    el.style.cssText=ls.has(s)?'background:var(--fire);color:#1a0a00;':i===0?'border:2px solid var(--fire);color:var(--fire);':'background:rgba(255,255,255,0.04);color:var(--t3);';
+    el.textContent=d.getDate();g.appendChild(el);
+  }
+}
+
+/* EQ + WORKOUT */
+function buildEq(){
+  const w=$('eqWrap');w.innerHTML='';
+  EQ_LIST.forEach(eq=>{
+    const on=ST.selectedEq.includes(eq.id);
+    const btn=document.createElement('button');btn.className='eq-btn'+(on?' on':'');
+    btn.innerHTML=`<span>${eq.icon} ${eq.name}</span><span>${on?'✓':''}</span>`;
+    btn.onclick=()=>{const i=ST.selectedEq.indexOf(eq.id);if(i>-1){if(ST.selectedEq.length===1)return showToast('ต้องมีอย่างน้อย 1','err');ST.selectedEq.splice(i,1);btn.classList.remove('on');btn.lastChild.textContent='';}else{ST.selectedEq.push(eq.id);btn.classList.add('on');btn.lastChild.textContent='✓';}save();genWorkout();};
+    w.appendChild(btn);
+  });
+}
+
+function genWorkout(){
+  const c=$('workoutWrap');c.innerHTML='';
+  let pool=[];ST.selectedEq.forEach(id=>{if(EXERCISES[id])pool.push(...EXERCISES[id]);});
+  if(!pool.length)pool=[...EXERCISES.bodyweight];
+  pool=pool.sort(()=>Math.random()-.5);
+  const num=ST.goal.startsWith('run_')?3:5;
+  c.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--og);border:1px solid rgba(255,107,43,0.18);border-radius:13px;padding:12px 14px;margin-bottom:12px"><div><p style="font-size:10px;font-weight:800;color:var(--fire);text-transform:uppercase;letter-spacing:1px">🔥 Workout — LV.${ST.userLevel}</p><p style="font-size:9px;color:var(--t3);margin-top:2px">${ST.goal.startsWith('run_')?'Cross-training 3 ท่า':'Strength 5 ท่า'}</p></div><button onclick="genWorkout()" style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:16px;cursor:pointer">🔀</button></div>`;
+  for(let i=0;i<num;i++){
+    const ex=pool[i%pool.length];if(!ex)continue;
+    const sets=typeof ex.s==='number'?ex.s+Math.floor((ST.userLevel-1)/3):ex.s;
+    const reps=typeof ex.r==='number'?ex.r+(ST.userLevel-1):ex.r;
+    const rest=typeof ex.rest==='number'?Math.max(10,ex.rest-(ST.userLevel-1)*2):ex.rest;
+    const rpeN=typeof ex.rpe==='number'?Math.min(10,ex.rpe+ST.userLevel*.1):7;
+    c.innerHTML+=`<div class="wk" onclick="startTimer(${typeof rest==='number'?rest:60},'${ex.n}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:42px;height:42px;border-radius:10px;background:var(--s2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${ex.art||'💪'}</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;line-height:1.2">${ex.n}</div>
+            <div style="font-size:9px;color:var(--t3);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.5px">${ex.eq}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Bebas Neue';font-size:22px;color:var(--fire);line-height:1">${sets}×${reps}</div>
+          <div style="font-size:9px;color:var(--t3);font-weight:700">REST ${typeof rest==='number'?rest+'s':rest}</div>
+        </div>
+      </div>
+      <div style="background:var(--s2);border-radius:8px;padding:8px 10px;margin-bottom:8px;border:1px solid var(--border)">
+        <div style="font-size:8px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">วิธีทำ</div>
+        <div style="font-size:10px;color:var(--t2);line-height:1.5">${ex.hw||'ทำตามท่าอย่างถูกต้อง'}</div>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+        <span class="bdg bo" style="font-size:9px">⏱ ${ex.t}</span>
+        <span class="bdg bam" style="font-size:9px">RPE ${rpeN.toFixed(1)}</span>
+        <span class="bdg bb" style="font-size:9px;margin-left:auto">⏸ แตะ = Rest Timer</span>
+      </div>
+      <div class="rpe-t"><div class="rpe-f" style="width:${Math.min(100,(rpeN/10)*100)}%"></div></div>
+    </div>`;
+  }
+}
+
+/* LOG MODE */
+function setMode(m){
+  ['modeAll','modeWt','modeRest'].forEach(id=>$(id).classList.remove('on'));
+  $('mode'+m.charAt(0).toUpperCase()+m.slice(1)).classList.add('on');
+  $('runDataRow').style.display=(m==='weight'||m==='rest')?'none':'grid';
+}
+
+function updateXpPreview(){
+  const dist=parseFloat($('logDist')?.value)||0,diet=$('logDiet')?.value;
+  let xp=5,parts=['base 5'];
+  if(dist>0){const dx=Math.floor(dist);xp+=dx;parts.push(`วิ่ง +${dx}`);}
+  if(diet==='perfect'){xp+=3;parts.push('อาหารดี +3');}
+  if($('xpPreview'))$('xpPreview').textContent='+'+xp+' XP';
+  if($('xpBreak'))$('xpBreak').textContent=parts.join(' · ');
+}
+$('logDist')?.addEventListener('input',updateXpPreview);
+$('logDiet')?.addEventListener('change',updateXpPreview);
+
+function updateLogHint(){
+  if(!ST.goal.startsWith('run_'))return;
+  const v=$('logDate').value;if(!v)return;
+  const d=new Date(v+'T12:00:00'),m=getRunMission(d);
+  $('logRunHint').classList.remove('hide');
+  $('logRunText').textContent=m&&m.target>0?`${m.title} — เป้า ${m.target} KM`:'พักผ่อน / Cross Training';
+}
+
+/* PROCESS LOG */
+function processLog(){
+  const rawDate=$('logDate').value||tod();
+  const wt=parseFloat($('logWt').value);
+  const dist=parseFloat($('logDist')?.value)||0;
+  const hr=parseInt($('logHR')?.value)||0;
+  const cals=parseInt($('logCal').value)||0;
+  const diet=$('logDiet').value;
+  const note=$('logNote').value;
+  if(isNaN(wt)||wt<=0)return showToast('ชั่งน้ำหนักก่อนเลยเว้ย!','err');
+
+  const dObj=new Date(rawDate+'T12:00:00');
+  const dateStr=`${dObj.getDate().toString().padStart(2,'0')}/${(dObj.getMonth()+1).toString().padStart(2,'0')}/${dObj.getFullYear()}`;
+  const prevWt=ST.history.length?ST.history[ST.history.length-1].weight:ST.startWt;
+
+  /* ROAST LOGIC */
+  let roast='',color='rgba(255,107,43,0.3)',emoji='💪';
+  if(ST.goal.startsWith('run_')){
+    const mission=getRunMission(dObj);
+    if(mission&&mission.target>0){
+      if(dist===0){roast+=`<p style="color:var(--red);font-weight:800;margin-bottom:6px">วันซ้อมแต่ไม่ออกไปวิ่ง! มาราธอนไม่แจกเหรียญคนขี้เกียจ ไอ้ขี้เกียจ!</p>`;color='var(--red)';emoji='🤬';}
+      else if(dist<mission.target*.7){roast+=`<p style="color:var(--amber);margin-bottom:6px">เป้า ${mission.target}K แต่วิ่งแค่ ${dist}K? ใจหมาก! วันแข่งจะเดินเข้าเส้นชัยแน่!</p>`;color='var(--amber)';emoji='😤';}
+      else if(dist>=mission.target){roast+=`<p style="color:var(--green);margin-bottom:6px;font-weight:800">โอ้โห! เก็บระยะได้ตามแผนเป๊ะ! วินัยแบบนี้แหละพาไปเส้นชัย!</p>`;color='var(--green)';emoji='🔥';}
+      else{roast+=`<p style="color:var(--fire);margin-bottom:6px">วิ่งได้ ${dist}K จาก ${mission.target}K พอทน แต่ต้องดีกว่านี้!</p>`;color='var(--fire)';emoji='💪';}
+    }else if(mission&&mission.target===0&&dist>3){roast+=`<p style="color:var(--amber);margin-bottom:6px">วันนี้ตารางให้พัก แต่ยังไปวิ่ง! กล้ามเนื้อไม่ฟื้นเดี๋ยวพัง ไอ้บ้าพลัง!</p>`;color='var(--amber)';emoji='⚠️';}
+  }
+  if(wt<prevWt){roast+=`<p>น้ำหนักลง ${(prevWt-wt).toFixed(1)}kg! มึงทำได้! รักษาไว้!</p>`;if(color==='rgba(255,107,43,0.3)'){color='var(--green)';emoji='🔥';}}
+  else if(wt>prevWt){roast+=`<p>น้ำหนักขึ้น ${(wt-prevWt).toFixed(1)}kg ${diet==='perfect'?'คุมดีแต่ขึ้น? แอบแดกดึกชัวร์!':'รู้อยู่แก่ใจว่าทำอะไรไปเมื่อคืน!'}`;if(color==='rgba(255,107,43,0.3)'){color='var(--red)';emoji='📉';}}
+  else{roast+=`<p>น้ำหนักนิ่ง ออกแรงหนักขึ้นหน่อยพรุ่งนี้!</p>`;if(color==='rgba(255,107,43,0.3)'){color='var(--amber)';emoji='⚠️';}}
+  if(cals>3000&&dist<20)roast+=`<p style="color:var(--red)">ยัด ${cals} แคล?! ถ้าไม่ได้วิ่ง 30K มา ไม่ต้องอ้างว่าอยากผอมเลย!</p>`;
+  if(hr>175)roast+=`<p style="color:var(--red)">HR ${hr} สูงอันตราย! ลดเพซก่อนหัวใจวาย!</p>`;
+  if(note)roast+=`<p style="color:var(--t2);font-size:11px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">📝 ${note}</p>`;
+
+  const log={dateRaw:dObj.getTime(),dateStr,weight:wt,dist,hr,diet,cals,note,feedback:roast,color,emoji};
+  ST.history.push(log);ST.history.sort((a,b)=>a.dateRaw-b.dateRaw);
+  let xpGain=5;if(dist>0)xpGain+=Math.floor(dist);if(diet==='perfect')xpGain+=3;
+  const oldLv=ST.userLevel;ST.xp+=xpGain;ST.userLevel=Math.floor(ST.xp/XP_PER_LV)+1;
+  ['logWt','logDist','logHR','logCal','logNote'].forEach(id=>{const el=$(id);if(el)el.value='';});
+  save();updateAllUI();initWater();renderCalendar();setTimeout(renderChart,200);
+  if(ST.userLevel>oldLv)showToast(`🔥 LEVEL UP! LV.${ST.userLevel}! +${xpGain}XP`,'fire');
+  else showToast(`✅ บันทึกแล้ว! +${xpGain} XP`,'ok');
+  switchTab('tabHome',0);
+  // Nudge backup
+  if(ST.history.length%5===0)setTimeout(()=>showToast('💾 อย่าลืม Backup! ไปที่ ⚙ ตั้งค่า','fire'),3000);
+}
+
+/* READINESS */
+function updateReadiness(){
+  const criteria=READINESS_CRITERIA[ST.goal]||READINESS_CRITERIA['weight_loss'];
+  const streak=calcStreak(),weeklyKm=calcWeeklyKm(),longestRun=calcLongestRun(28),cons=calcConsistency(),tKm=totalKm(),dietRatio=calcDietRatio(),lv=ST.userLevel,totalLogs=ST.history.length;
+  const scores=criteria.map(c=>{
+    let a=0;
+    if(c.id==='weekly_vol')a=weeklyKm;else if(c.id==='long_run')a=longestRun;else if(c.id==='consistency')a=cons;else if(c.id==='streak')a=streak;else if(c.id==='total_km')a=tKm;else if(c.id==='lv_check')a=lv;else if(c.id==='total_sessions')a=totalLogs;else if(c.id==='diet_ratio')a=dietRatio;
+    return{...c,actual:a,score:Math.min(100,(a/c.target)*100)};
+  });
+  const overall=scores.reduce((s,c)=>s+c.score,0)/scores.length;
+  $('readyArc').style.strokeDashoffset=553-(553*overall/100);
+  $('readyPct').textContent=Math.round(overall)+'%';
+  const col=overall<40?'var(--red)':overall<70?'var(--amber)':'var(--green)';
+  $('readyPct').style.color=col;
+  const goalLabel={run_42k:'Full Marathon 42K',run_21k:'Half Marathon 21K',run_10k:'Mini Marathon 10K',weight_loss:'Weight Loss'}[ST.goal];
+  let vt,vm,ve,vb,vv;
+  if(overall<30){vt='ยังไม่พร้อมเลย';vm='เริ่มสะสมระยะทางและบันทึกทุกวัน ก้าวแรกสำคัญที่สุด';ve='🔴';vb='var(--red)';vv='NOT READY';}
+  else if(overall<50){vt='กำลังสร้างฐาน';vm='ดีขึ้นแล้ว! แต่ยังต้องเพิ่มระยะทางและความสม่ำเสมออีก 4-8 สัปดาห์';ve='🟡';vb='var(--amber)';vv='BUILDING';}
+  else if(overall<70){vt='ใกล้พร้อมแล้ว!';vm='ร่างกายพัฒนาชัดเจน! เพิ่ม Long Run ให้ถึงเป้าหมาย รักษา Streak';ve='🟠';vb='var(--fire)';vv='GETTING THERE';}
+  else if(overall<90){vt='เกือบพร้อมแล้ว!';vm='ยอดมาก! ดัน Long Run ให้ถึงระยะสูงสุดอีกนิดเดียว!';ve='⚡';vb='var(--blue)';vv='ALMOST READY';}
+  else{vt='พร้อมลงสนาม! 🏁';vm='ผ่านทุก Criteria แล้ว! ลงทะเบียนแข่งได้เลย อย่าลืม Taper 2-3 สัปดาห์';ve='🏁';vb='var(--green)';vv='RACE READY!';}
+  $('readyVerdict').textContent=vv;$('readyVerdict').style.color=col;
+  $('vTitle').textContent=vt;$('vEmoji').textContent=ve;$('vGoal').textContent='สำหรับ '+goalLabel;$('vMsg').textContent=vm;$('verdictCard').style.borderLeftColor=vb;
+  const cl=$('chkList');cl.innerHTML='';
+  scores.forEach(s=>{
+    const pass=s.score>=100,part=s.score>=60&&s.score<100;
+    const icon=pass?'✅':part?'⚠️':'❌';const cls=pass?'cp':part?'cw':'cf';
+    cl.innerHTML+=`<div class="chk-row"><div class="chk-icon ${cls}">${icon}</div><div><p style="font-size:12px;font-weight:800;margin-bottom:2px">${s.name}</p><p style="font-size:10px;color:var(--t2);line-height:1.5">${s.desc}<br><span style="color:${pass?'var(--green)':part?'var(--amber)':'var(--red)'}">ปัจจุบัน: ${typeof s.actual==='number'?s.actual.toFixed(1):s.actual} ${s.unit}</span></p></div></div>`;
+  });
+  const ip=$('improvePlan');ip.innerHTML='';
+  const tips={weekly_vol:`เพิ่ม Easy Run อีก ${Math.ceil((s=>s.target-s.actual)(scores.find(x=>x.id==='weekly_vol')||{target:0,actual:0})||0)} km/สัปดาห์`,long_run:`วาง Long Run วันอาทิตย์ เพิ่มทีละ 10% ต่อสัปดาห์`,consistency:`วิ่งให้ครบ X วัน/สัปดาห์ แม้แค่ 15 นาทีก็ยังนับ`,streak:`อย่าหยุด! Recovery Run 10 นาทีรักษา Streak ได้`,total_km:`วิ่งสะสมต่อไป`,lv_check:`เก็บ XP ต่อไปเรื่อยๆ`,total_sessions:`บันทึกทุกวัน`,diet_ratio:`กินอาหารสะอาดให้มากขึ้น`};
+  scores.filter(s=>s.score<100).sort((a,b)=>a.score-b.score).slice(0,3).forEach(s=>{
+    ip.innerHTML+=`<div class="card card-fire" style="padding:13px;border-left:3px solid var(--fire)"><p style="font-size:10px;font-weight:800;color:var(--fire);margin-bottom:4px">🎯 ${s.name}</p><p style="font-size:11px;color:var(--t2);line-height:1.6">${tips[s.id]||'ซ้อมให้สม่ำเสมอมากขึ้น'}</p><div style="margin-top:8px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:9px;color:var(--t3);font-weight:700">Progress</span><span style="font-size:9px;color:var(--fire);font-weight:800">${Math.round(s.score)}%</span></div><div class="ptrack"><div class="pfill" style="width:${Math.round(s.score)}%"></div></div></div></div>`;
+  });
+  if(!scores.filter(s=>s.score<100).length)ip.innerHTML='<div class="card card-green" style="padding:14px;text-align:center"><p style="font-size:20px;margin-bottom:6px">🏆</p><p style="font-size:13px;font-weight:800;color:var(--green)">ผ่านทุก Criteria แล้ว!</p></div>';
+  $('scienceInfo').innerHTML=SCIENCE[ST.goal]||SCIENCE['weight_loss'];
+}
+
+/* CHART */
+function renderChart(){
+  const canvas=$('wtChart');if(!canvas||!ST.history.length)return;
+  const ctx=canvas.getContext('2d');
+  const sorted=[...ST.history].sort((a,b)=>a.dateRaw-b.dateRaw).slice(-14);
+  const w=canvas.offsetWidth||350,h=100;canvas.width=w;canvas.height=h;
+  const weights=sorted.map(l=>l.weight);
+  const minW=Math.min(...weights)-1,maxW=Math.max(...weights)+1,pad=20;
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=1;
+  for(let i=0;i<=3;i++){const y=pad+(i/3)*(h-pad*2);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+  const pts=sorted.map((l,i)=>({x:pad+(i/Math.max(sorted.length-1,1))*(w-pad*2),y:pad+(1-(l.weight-minW)/(maxW-minW))*(h-pad*2)}));
+  const grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,'rgba(255,107,43,0.22)');grad.addColorStop(1,'rgba(255,107,43,0)');
+  ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.lineTo(pts[pts.length-1].x,h);ctx.lineTo(pts[0].x,h);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();ctx.strokeStyle='#ff6b2b';ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.stroke();
+  pts.forEach((p,i)=>{ctx.beginPath();ctx.arc(p.x,p.y,i===pts.length-1?5:3,0,Math.PI*2);ctx.fillStyle=i===pts.length-1?'#ff6b2b':'#333';ctx.strokeStyle='#ff6b2b';ctx.lineWidth=1.5;ctx.fill();ctx.stroke();});
+}
+
+/* HISTORY */
+function renderHistory(){
+  const list=$('histList');if(!list)return;
+  if(ST.history.length>0){const last=ST.history[ST.history.length-1];$('verdictCard') && ($('verdictCard').style.borderLeftColor=last.color);}
+  list.innerHTML='';
+  [...ST.history].reverse().forEach(log=>{
+    const diff=(log.weight-ST.startWt).toFixed(1);const pos=parseFloat(diff)<=0;
+    list.innerHTML+=`<div class="hist" style="border-left:3px solid ${log.color||'var(--border)'}"><div><p style="font-size:12px;font-weight:700">${log.dateStr}</p><div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">${log.cals>0?`<span class="bdg bo" style="font-size:9px">🍔 ${log.cals}kcal</span>`:''} ${log.dist>0?`<span class="bdg bb" style="font-size:9px">🏃 ${log.dist}km</span>`:''} ${log.hr>0?`<span class="bdg br" style="font-size:9px">❤️ ${log.hr}bpm</span>`:''}</div></div><div style="text-align:right"><div style="font-family:'Bebas Neue';font-size:28px;line-height:1">${log.weight.toFixed(1)}</div><div style="font-size:10px;font-weight:700;color:${pos?'var(--green)':'var(--red)'}">${parseFloat(diff)>0?'+'+diff:diff}kg</div></div></div>`;
+  });
+}
+
+/* TAB SWITCHING */
+const TABS=['tabHome','tabPlan','tabLog','tabReady','tabSettings'];
+function switchTab(id,idx){
+  TABS.forEach(t=>{const el=$(t);if(el){el.classList.add('hide');el.classList.remove('fu');}});
+  const target=$(id);if(!target)return;
+  target.classList.remove('hide');void target.offsetWidth;target.classList.add('fu');
+  document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('on',i===idx));
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='tabLog'){$('logDate').value=tod();updateLogHint();updateXpPreview();}
+  if(id==='tabReady')updateReadiness();
+  if(id==='tabPlan'){buildEq();genWorkout();}
+  if(id==='tabSettings')updateSettingsTab();
+}
+
+initApp();// --- โค้ดที่ต้องก๊อปปี้ไปวางต่อท้ายไฟล์ beastborne.html และ draglak.html ---
+
+function checkPendingRunSync() {
+  const syncDataRaw = localStorage.getItem('pendingRunSync');
+  if (syncDataRaw) {
+    try {
+      const syncData = JSON.parse(syncDataRaw);
+      localStorage.removeItem('pendingRunSync'); // เคลียร์ทันทีกันโหลดซ้ำ
+
+      setTimeout(() => {
+        const toastType = syncData.mode === 'draglak' ? 'fire' : 'quest';
+        const msg = syncData.mode === 'draglak' 
+          ? `🔥 ข้อมูล GPS เข้าแล้ว! มึงได้ +${syncData.xp} XP!`
+          : `⚔️ ระบบ GPS ส่งข้อมูลการรบสำเร็จ! ได้รับ +${syncData.xp} XP`;
+          
+        showToast(msg, toastType);
+        
+        if (typeof updateAllUI === 'function') updateAllUI();
+      }, 600);
+    } catch (e) {
+      console.error("Hydration Error:", e);
+    }
+  }
+}
+
+// ผูกเข้ากับ window.onload เพื่อเช็คตอนโหลดหน้าเว็บ
+window.addEventListener('load', () => {
+  checkPendingRunSync();
+});
+</script>
+</body>
+</html>

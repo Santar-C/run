@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- PWA Manifest inline -->
+<link rel="manifest" href="data:application/json,{%22name%22:%22BEASTBORNE%22,%22short_name%22:%22Beast%22,%22display%22:%22standalone%22,%22background_color%22:%22%23000000%22,%22theme_color%22:%22%23000000%22,%22start_url%22:%22./index.html%22}">
+<title>BEASTBORNE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@700;900&family=Sarabun:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#000;overflow:hidden;font-family:'Sarabun',sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+/* ── BG HALVES ── */
+.bg-left{position:absolute;left:0;top:0;bottom:0;width:50%;background:linear-gradient(160deg,#1a0800 0%,#060200 100%)}
+.bg-right{position:absolute;right:0;top:0;bottom:0;width:50%;background:linear-gradient(200deg,#020010 0%,#000108 100%)}
+.bg-run{position:absolute;bottom:0;left:0;right:0;height:30%;background:linear-gradient(0deg,rgba(0,20,40,0.8) 0%,transparent 100%)}
+.bg-divider-v{position:absolute;left:50%;top:0;bottom:30%;width:1px;background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,0.1) 40%,rgba(255,255,255,0.1) 60%,transparent 100%);transform:translateX(-50%);z-index:5}
+.bg-divider-h{position:absolute;left:0;right:0;bottom:30%;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.08) 30%,rgba(255,255,255,0.08) 70%,transparent 100%);z-index:5}
+
+/* ── GLOWS ── */
+.glow-left{position:absolute;left:-40px;top:25%;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,80,20,0.15) 0%,transparent 70%);filter:blur(40px);pointer-events:none;animation:gp 3.5s ease-in-out infinite alternate}
+.glow-right{position:absolute;right:-40px;top:25%;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(60,100,255,0.12) 0%,transparent 70%);filter:blur(40px);pointer-events:none;animation:gp 3.5s ease-in-out infinite alternate-reverse}
+.glow-run{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:300px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(34,192,96,0.12) 0%,transparent 70%);filter:blur(30px);pointer-events:none;animation:gp 4s ease-in-out infinite}
+@keyframes gp{from{opacity:.5;transform:scale(1)}to{opacity:1;transform:scale(1.15)}}
+
+/* ── HEADER ── */
+.top-section{position:relative;z-index:10;text-align:center;padding:28px 20px 10px}
+.top-eyebrow{font-size:8px;letter-spacing:6px;color:rgba(255,255,255,0.15);text-transform:uppercase;font-weight:700;margin-bottom:6px}
+.top-brand{font-family:'Cinzel',serif;font-size:10px;letter-spacing:5px;color:rgba(255,255,255,0.08);margin-bottom:4px;font-weight:900}
+.top-divider{width:24px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);margin:0 auto 6px}
+.top-sub{font-size:10px;color:rgba(255,255,255,0.12);letter-spacing:2px}
+
+/* ── CARDS ROW (top 70%) ── */
+.cards-row{position:relative;z-index:10;display:flex;height:70%;padding:0}
+
+/* Left / Right half */
+.half{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:16px 12px 20px;cursor:pointer;position:relative;transition:all .25s cubic-bezier(.34,1.56,.64,1);-webkit-user-select:none;user-select:none;overflow:hidden}
+.half:active{transform:scale(.96)}
+.flash{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .12s}
+.fl-o{background:rgba(255,107,43,0.07)}
+.fl-b{background:rgba(100,140,255,0.06)}
+.half:active .flash{opacity:1}
+.half-icon{font-size:48px;margin-bottom:12px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 4px 16px rgba(0,0,0,.5))}
+.half:active .half-icon{transform:scale(.88) translateY(4px)}
+.half-sub{font-size:10px;font-weight:900;letter-spacing:1px;margin-bottom:4px}
+.half-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;text-align:center;line-height:1;margin-bottom:8px}
+.t-drag{color:#ff6b2b}
+.t-beast{font-family:'Cinzel',serif;font-size:16px;letter-spacing:4px;color:#8aabff}
+.half-desc{font-size:10px;text-align:center;line-height:1.6;max-width:130px}
+.d-drag{color:rgba(255,150,80,0.45)}
+.d-beast{color:rgba(140,180,255,0.38)}
+.half-badge{margin-top:8px;font-size:7px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:4px 11px;border-radius:50px}
+.b-drag{background:rgba(255,107,43,0.08);border:1px solid rgba(255,107,43,0.2);color:rgba(255,107,43,0.6)}
+.b-beast{background:rgba(100,140,255,0.06);border:1px solid rgba(100,140,255,0.16);color:rgba(140,180,255,0.5)}
+.tap-hint{position:absolute;bottom:6px;font-size:7px;color:rgba(255,255,255,0.1);letter-spacing:2px;text-transform:uppercase;animation:blink 2.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:.8}}
+
+/* ── RUN BANNER (bottom 30%) ── */
+.run-banner{position:relative;z-index:10;height:30%;display:flex;align-items:stretch;padding:0 12px 0;cursor:pointer;-webkit-user-select:none;user-select:none;transition:all .25s}
+.run-banner:active{transform:scale(.98)}
+.run-inner{flex:1;background:rgba(0,30,20,0.6);border:1px solid rgba(34,192,96,0.2);border-radius:18px 18px 0 0;display:flex;align-items:center;padding:14px 18px;gap:14px;position:relative;overflow:hidden;transition:border-color .2s}
+.run-banner:active .run-inner{border-color:rgba(34,192,96,0.45)}
+.run-inner::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(34,192,96,0.06) 0%,transparent 60%);pointer-events:none}
+.run-glow{position:absolute;right:-20px;top:-20px;width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(34,192,96,0.12) 0%,transparent 70%);pointer-events:none}
+.run-icon{font-size:36px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(34,192,96,0.4));animation:runBounce 2s ease-in-out infinite}
+@keyframes runBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.run-text{flex:1}
+.run-eyebrow{font-size:8px;font-weight:800;color:rgba(34,192,96,0.5);letter-spacing:3px;text-transform:uppercase;margin-bottom:3px}
+.run-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:rgba(200,240,220,0.9);margin-bottom:4px}
+.run-desc{font-size:10px;color:rgba(100,180,120,0.5);line-height:1.5}
+.run-badge{font-size:7px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:50px;background:rgba(34,192,96,0.08);border:1px solid rgba(34,192,96,0.18);color:rgba(34,192,96,0.55);align-self:flex-start;flex-shrink:0}
+
+/* ── RETURNING BADGE ── */
+.ret-badge{position:absolute;top:12px;right:12px;z-index:20;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:50px;padding:4px 10px;font-size:8px;color:rgba(255,255,255,0.25);font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:none}
+.ret-badge.show{display:block}
+.ret-badge:active{background:rgba(255,255,255,0.08)}
+
+/* ── GITHUB LINK ── */
+.github-link{position:absolute;bottom:8px;right:14px;z-index:20;display:flex;align-items:center;gap:5px;text-decoration:none;opacity:.25;transition:opacity .2s}
+.github-link:hover{opacity:.6}
+.github-link:active{opacity:.8}
+.github-link svg{width:16px;height:16px;fill:rgba(255,255,255,0.8)}
+.github-link span{font-size:8px;color:rgba(255,255,255,0.8);font-weight:700;letter-spacing:1px}
+
+/* ── ANIMATIONS ── */
+.top-section{animation:fd .6s ease .05s both}
+.cards-row{animation:fu .7s ease .15s both}
+.run-banner{animation:fu .7s ease .3s both}
+@keyframes fd{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SMALL SCREEN ── */
+@media(max-width:260px),(max-height:300px){
+  .top-section{display:none}
+  .half-desc,.half-badge,.tap-hint,.run-desc,.run-badge{display:none}
+  .half{padding:8px 6px 10px}.half-icon{font-size:32px;margin-bottom:8px}
+  .half-title{font-size:16px}.t-beast{font-size:13px}
+  .run-inner{padding:10px 12px}.run-icon{font-size:26px}.run-title{font-size:16px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- Backgrounds -->
+  <div class="bg-left"></div>
+  <div class="bg-right"></div>
+  <div class="bg-run"></div>
+  <div class="bg-divider-v"></div>
+  <div class="bg-divider-h"></div>
+  <div class="glow-left"></div>
+  <div class="glow-right"></div>
+  <div class="glow-run"></div>
+
+  <!-- Returning badge -->
+  <div class="ret-badge" id="retBadge" onclick="returnMode()">← กลับ</div>
+
+  <!-- GitHub link -->
+  <a href="https://github.com/YOUR_USERNAME/beastborne" target="_blank" rel="noopener" class="github-link" title="GitHub">
+    <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.21.09 1.85 1.24 1.85 1.24 1.07 1.84 2.81 1.31 3.5 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02.005 2.04.138 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.63-5.49 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.21.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+    <span>GitHub</span>
+  </a>
+
+  <!-- Header -->
+  <div class="top-section">
+    <p class="top-eyebrow">เลือกเส้นทาง</p>
+    <p class="top-brand">BEASTBORNE</p>
+    <div class="top-divider"></div>
+    <p class="top-sub">Choose Your Path</p>
+  </div>
+
+  <!-- Mode Cards (top 70%) -->
+  <div class="cards-row">
+    <!-- Left: Friend Mode -->
+    <div class="half" onclick="pick('draglak')">
+      <div class="flash fl-o"></div>
+      <div class="half-icon">💀</div>
+      <p class="half-sub" style="color:rgba(255,107,43,0.5)">โหมดเพื่อนด่า</p>
+      <p class="half-title t-drag">กูจะลาก<br>มึงเอง</p>
+      <p class="half-desc d-drag">เทรนเนอร์ที่ด่าเหมือนเพื่อนรัก ไม่มีเอาใจ มีแต่ผลลัพธ์</p>
+      <span class="half-badge b-drag">🔥 Trainer Mode</span>
+      <span class="tap-hint">แตะ</span>
+    </div>
+    <!-- Right: Beast Mode -->
+    <div class="half" onclick="pick('beastborne')">
+      <div class="flash fl-b"></div>
+      <div class="half-icon">⚔️</div>
+      <p class="half-sub" style="color:rgba(140,180,255,0.4)">โหมดอัศวิน</p>
+      <p class="half-title t-beast">BEAST<br>BORNE</p>
+      <p class="half-desc d-beast">รับบทอัศวิน ปราบบอสปีศาจ เควสทุกวัน สะสมเลเวล</p>
+      <span class="half-badge b-beast">⚡ RPG Mode</span>
+      <span class="tap-hint">แตะ</span>
+    </div>
+  </div>
+
+  <!-- Run Tracker Banner (bottom 30%) -->
+  <div class="run-banner" onclick="pick('run')">
+    <div class="run-inner">
+      <div class="run-glow"></div>
+      <div class="run-icon">🏃</div>
+      <div class="run-text">
+        <div class="run-eyebrow">GPS Tracker</div>
+        <div class="run-title">RUN LOG</div>
+        <div class="run-desc">ติดตามเส้นทาง · สรุปการวิ่ง · แผนที่ GPS</div>
+      </div>
+      <span class="run-badge">📍 Live Map</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Remember last mode visited
+function pick(m) {
+  localStorage.setItem('selectedMode', m);
+  const wrap = document.querySelector('.wrap');
+  wrap.style.cssText = 'opacity:0;transition:opacity .2s';
+  setTimeout(() => { location.href = m + '.html'; }, 200);
+}
+
+function returnMode() {
+  const m = localStorage.getItem('selectedMode');
+  if (m) pick(m);
+}
+
+// Show returning badge if user has saved data
+const lastMode = localStorage.getItem('selectedMode');
+if (lastMode) {
+  const storeKey = lastMode === 'beastborne' ? 'BeastborneV17' : lastMode === 'draglak' ? 'GJL_State' : 'RunTrackerV2';
+  const hasData = localStorage.getItem(storeKey);
+  if (hasData) {
+    const badge = document.getElementById('retBadge');
+    const label = { beastborne: 'BEASTBORNE', draglak: 'กูจะลากมึงเอง', run: 'RUN LOG' }[lastMode] || lastMode;
+    badge.textContent = '← ' + label;
+    badge.classList.add('show');
+  }
+}
+
+// PWA: register service worker if available
+if ('serviceWorker' in navigator) {
+  // inline SW registration — works without a separate sw.js file
+  const swCode = `
+    const CACHE='beastborne-v1';
+    self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','.index.html']))));
+    self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+</script>
+</body>
+</html>
