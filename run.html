@@ -588,45 +588,25 @@ function showSummary(run, isNew = false) {
 }
 
 function saveAndExit(run) {
-  saveRun(run); 
+  saveRun(run); // เซฟลงระบบ GPS ตัวเองตามปกติ
 
   const activeMode = localStorage.getItem('selectedMode');
   const km = parseFloat((run.distance / 1000).toFixed(2));
   const cals = Math.round(km * 60);
-  const xpGain = Math.floor(km * 10); 
-  const dateRaw = run.ts;
 
-  const battleLog = {
-    dateRaw: dateRaw,
-    dateStr: new Date(dateRaw).toLocaleDateString('th-TH'),
-    weight: 0,
+  // สร้าง "ไอเทมเควส" จาก GPS รอให้โหมดหลักมากดรับ
+  const pendingData = {
+    dateRaw: run.ts,
     dist: km,
-    hr: 0, 
-    diet: 'normal',
     cals: cals,
-    note: `[GPS System] วิ่ง ${km}KM | Pace ${fmtPace(run.avgSpeed)} | เวลา ${fmtTime(run.duration)}`,
-    feedback: activeMode === 'draglak' ? 'โค้ช: เออ! อย่างน้อยวันนี้มึงก็ลากสังขารออกไปวิ่งได้!' : 'ระบบ: ได้รับ XP จากการออกรบจริง!',
-    color: activeMode === 'draglak' ? 'var(--green)' : 'var(--blue)',
-    emoji: '📍'
+    note: `[GPS Sync] ปราบมอนสเตอร์ด้วย Pace ${fmtPace(run.avgSpeed)} เวลา ${fmtTime(run.duration)}`
   };
 
   if (activeMode === 'beastborne' || activeMode === 'draglak') {
-    const storeKey = activeMode === 'beastborne' ? 'BB_State' : 'GJL_State';
-    let appState = JSON.parse(localStorage.getItem(storeKey)) || {};
+    // โยนใส่ตัวแปรกลาง Pending_GPS_Run
+    localStorage.setItem('Pending_GPS_Run', JSON.stringify(pendingData));
     
-    if (!appState.history) appState.history = [];
-    
-    battleLog.weight = appState.history.length > 0 
-      ? appState.history[appState.history.length - 1].weight 
-      : (appState.startWt || 0);
-
-    appState.history.push(battleLog);
-    appState.xp = (appState.xp || 0) + xpGain;
-    appState.userLevel = Math.floor(appState.xp / 100) + 1; 
-
-    localStorage.setItem(storeKey, JSON.stringify(appState));
-    localStorage.setItem('pendingRunSync', JSON.stringify({ xp: xpGain, mode: activeMode }));
-
+    // เด้งกลับไปโหมดนั้น
     window.location.href = `${activeMode}.html`;
     return;
   }
