@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<title>BEASTBORNE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@700;900&family=Sarabun:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#000;overflow:hidden;font-family:'Sarabun',sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+.bg-l{position:absolute;left:0;top:0;bottom:0;width:50%;background:linear-gradient(160deg,#180600,#050100)}
+.bg-r{position:absolute;right:0;top:0;bottom:0;width:50%;background:linear-gradient(200deg,#02000f,#000106)}
+.bg-bot{position:absolute;bottom:0;left:0;right:0;height:33%;background:linear-gradient(0deg,rgba(0,22,12,.9),transparent)}
+.dv{position:absolute;left:50%;top:0;bottom:33%;width:1px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.1) 35%,rgba(255,255,255,.1) 65%,transparent);transform:translateX(-50%);z-index:5}
+.dh{position:absolute;left:0;right:0;bottom:33%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07) 30%,rgba(255,255,255,.07) 70%,transparent);z-index:5}
+.gl{position:absolute;left:-50px;top:18%;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(255,75,15,.13),transparent 70%);filter:blur(40px);pointer-events:none;animation:gp 3.5s ease-in-out infinite alternate}
+.gr{position:absolute;right:-50px;top:18%;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(55,90,255,.1),transparent 70%);filter:blur(40px);pointer-events:none;animation:gp 3.5s ease-in-out infinite alternate-reverse}
+.gb{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);width:340px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(20,180,100,.09),transparent 70%);filter:blur(30px);pointer-events:none;animation:gp 5s ease-in-out infinite}
+@keyframes gp{from{opacity:.4;transform:scale(1)}to{opacity:1;transform:scale(1.18)}}
+
+/* header */
+.hdr{position:relative;z-index:10;text-align:center;padding:24px 20px 6px}
+.hdr-eye{font-size:8px;letter-spacing:5px;color:rgba(255,255,255,.12);text-transform:uppercase;font-weight:700;margin-bottom:5px}
+.hdr-brand{font-family:'Cinzel',serif;font-size:9px;font-weight:900;letter-spacing:5px;color:rgba(255,255,255,.06);margin-bottom:3px}
+.hdr-div{width:20px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.11),transparent);margin:0 auto 5px}
+.hdr-sub{font-size:9px;color:rgba(255,255,255,.09);letter-spacing:2px}
+
+/* top 67% — two RPG halves */
+.halves{position:relative;z-index:10;height:67%;display:flex}
+.half{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:12px 10px 16px;cursor:pointer;position:relative;overflow:hidden;transition:transform .22s cubic-bezier(.34,1.56,.64,1);-webkit-user-select:none;user-select:none}
+.half:active{transform:scale(.95)}
+.fl{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .11s}
+.fl-o{background:rgba(255,100,40,.07)}
+.fl-b{background:rgba(90,130,255,.06)}
+.half:active .fl{opacity:1}
+.h-ico{font-size:44px;margin-bottom:10px;transition:transform .26s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 4px 12px rgba(0,0,0,.55))}
+.half:active .h-ico{transform:scale(.87) translateY(4px)}
+.h-sub{font-size:9px;font-weight:900;letter-spacing:.8px;margin-bottom:3px}
+.h-ttl{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;text-align:center;line-height:1;margin-bottom:6px}
+.ht-d{color:#ff6b2b}
+.ht-b{font-family:'Cinzel',serif;font-size:14px;letter-spacing:4px;color:#8aabff}
+.h-dsc{font-size:9px;text-align:center;line-height:1.55;max-width:128px}
+.hd-d{color:rgba(255,140,70,.4)}
+.hd-b{color:rgba(130,170,255,.34)}
+.h-tag{margin-top:6px;display:inline-block;font-size:7px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:50px}
+.ht-tag-d{background:rgba(255,107,43,.08);border:1px solid rgba(255,107,43,.17);color:rgba(255,107,43,.55)}
+.ht-tag-b{background:rgba(90,130,255,.06);border:1px solid rgba(90,130,255,.14);color:rgba(130,170,255,.46)}
+.tap{position:absolute;bottom:5px;font-size:7px;color:rgba(255,255,255,.1);letter-spacing:2px;text-transform:uppercase;animation:blink 2.6s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:.18}50%{opacity:.7}}
+
+/* bottom 33% — activity strip */
+.astrip{position:relative;z-index:10;height:33%;padding:0 11px 0;display:flex;flex-direction:column}
+.astrip-stats{display:none;justify-content:center;gap:7px;padding:7px 0 0;flex-shrink:0}
+.astrip-stats.show{display:flex}
+.ast-pill{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:50px;padding:3px 9px;font-size:8px;font-weight:700}
+.asp-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.asp-run{background:#ff6b2b}
+.asp-bike{background:#22c0a0}
+.asp-val{color:rgba(255,255,255,.5)}
+.astrip-row{flex:1;display:flex;gap:8px;align-items:stretch}
+.acard{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;border-radius:16px 16px 0 0;padding:10px 8px 14px;cursor:pointer;position:relative;overflow:hidden;transition:all .2s;-webkit-user-select:none;user-select:none;border-bottom:none}
+.acard:active{transform:scale(.97)}
+.ac-run{background:rgba(0,0,0,.52);border:1px solid rgba(255,107,43,.2);border-bottom:none}
+.ac-bike{background:rgba(0,0,0,.52);border:1px solid rgba(34,192,160,.2);border-bottom:none}
+.ac-run::before,.ac-bike::before{content:'';position:absolute;inset:0;pointer-events:none}
+.ac-run::before{background:linear-gradient(160deg,rgba(255,107,43,.07),transparent 60%)}
+.ac-bike::before{background:linear-gradient(160deg,rgba(34,192,160,.07),transparent 60%)}
+.ac-glow{position:absolute;right:-10px;top:-10px;width:70px;height:70px;border-radius:50%;pointer-events:none}
+.ac-run .ac-glow{background:radial-gradient(circle,rgba(255,107,43,.1),transparent 70%)}
+.ac-bike .ac-glow{background:radial-gradient(circle,rgba(34,192,160,.1),transparent 70%)}
+.ac-ico{font-size:24px;margin-bottom:5px;animation:bounce 2.4s ease-in-out infinite}
+.ac-bike .ac-ico{animation-delay:.7s}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.ac-lbl{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;margin-bottom:2px}
+.acl-run{color:rgba(255,107,43,.82)}
+.acl-bike{color:rgba(34,192,160,.82)}
+.ac-dsc{font-size:8px;line-height:1.45;text-align:center;max-width:90px}
+.acd-run{color:rgba(255,140,70,.38)}
+.acd-bike{color:rgba(34,192,160,.36)}
+.ac-tag{margin-top:5px;display:inline-block;font-size:7px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:2px 8px;border-radius:50px}
+.act-run{background:rgba(255,107,43,.08);border:1px solid rgba(255,107,43,.17);color:rgba(255,107,43,.52)}
+.act-bike{background:rgba(34,192,160,.08);border:1px solid rgba(34,192,160,.17);color:rgba(34,192,160,.52)}
+
+/* returning badge */
+.ret{position:absolute;top:11px;right:12px;z-index:20;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:50px;padding:4px 11px;font-size:8px;color:rgba(255,255,255,.22);font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:none;-webkit-user-select:none;user-select:none}
+.ret.on{display:block}
+.ret:active{background:rgba(255,255,255,.1)}
+
+/* github */
+.gh{position:absolute;bottom:9px;right:13px;z-index:20;display:flex;align-items:center;gap:4px;text-decoration:none;opacity:.16;transition:opacity .2s}
+.gh:hover,.gh:active{opacity:.5}
+.gh svg{width:13px;height:13px;fill:rgba(255,255,255,.9)}
+.gh span{font-size:7px;color:rgba(255,255,255,.9);font-weight:700;letter-spacing:1px}
+
+/* anims */
+.hdr{animation:fd .55s ease .05s both}
+.halves{animation:fu .62s ease .1s both}
+.astrip{animation:fu .62s ease .25s both}
+@keyframes fd{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fu{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:250px),(max-height:310px){
+  .hdr{display:none}.h-dsc,.h-tag,.tap,.ac-dsc,.ac-tag,.astrip-stats{display:none!important}
+  .half{padding:7px 5px 9px}.h-ico{font-size:30px;margin-bottom:7px}.h-ttl{font-size:16px}.ht-b{font-size:12px}
+  .acard{padding:7px 5px 10px}.ac-ico{font-size:18px}.ac-lbl{font-size:11px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bg-l"></div><div class="bg-r"></div><div class="bg-bot"></div>
+  <div class="dv"></div><div class="dh"></div>
+  <div class="gl"></div><div class="gr"></div><div class="gb"></div>
+
+  <!-- Returning badge -->
+  <div class="ret" id="retBadge" onclick="returnLast()">← กลับ</div>
+
+  <!-- GitHub link -->
+  <a href="https://github.com/YOUR_USERNAME/beastborne" target="_blank" rel="noopener" class="gh" title="GitHub">
+    <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.38.6.11.82-.26.82-.58v-2.03c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.21.09 1.85 1.24 1.85 1.24 1.07 1.84 2.81 1.31 3.5 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 013-.4c1.02 0 2.04.14 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.63-5.49 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.21.7.83.58C20.57 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+    <span>GitHub</span>
+  </a>
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-eye">เลือกเส้นทาง</div>
+    <div class="hdr-brand">BEASTBORNE</div>
+    <div class="hdr-div"></div>
+    <div class="hdr-sub">Choose Your Path</div>
+  </div>
+
+  <!-- Top 67%: RPG halves -->
+  <div class="halves">
+    <div class="half" onclick="go('draglak')">
+      <div class="fl fl-o"></div>
+      <div class="h-ico">💀</div>
+      <div class="h-sub" style="color:rgba(255,107,43,.42)">โหมดเพื่อนด่า</div>
+      <div class="h-ttl ht-d">กูจะลาก<br>มึงเอง</div>
+      <div class="h-dsc hd-d">เทรนเนอร์ที่ด่าเหมือนเพื่อนรัก ไม่มีเอาใจ มีแต่ผลลัพธ์</div>
+      <span class="h-tag ht-tag-d">🔥 Trainer Mode</span>
+      <span class="tap">แตะ</span>
+    </div>
+    <div class="half" onclick="go('beastborne')">
+      <div class="fl fl-b"></div>
+      <div class="h-ico">⚔️</div>
+      <div class="h-sub" style="color:rgba(130,170,255,.35)">โหมดอัศวิน</div>
+      <div class="h-ttl ht-b">BEAST<br>BORNE</div>
+      <div class="h-dsc hd-b">รับบทอัศวิน ปราบบอสปีศาจ เควสทุกวัน สะสมเลเวล</div>
+      <span class="h-tag ht-tag-b">⚡ RPG Mode</span>
+      <span class="tap">แตะ</span>
+    </div>
+  </div>
+
+  <!-- Bottom 33%: Activity strip -->
+  <div class="astrip">
+    <div class="astrip-stats" id="astripStats">
+      <div class="ast-pill"><div class="asp-dot asp-run"></div><span class="asp-val" id="stRun">0.0 km วิ่ง</span></div>
+      <div class="ast-pill"><div class="asp-dot asp-bike"></div><span class="asp-val" id="stBike">0.0 km ปั่น</span></div>
+    </div>
+    <div class="astrip-row">
+      <div class="acard ac-run" onclick="goActivity('run')">
+        <div class="ac-glow"></div>
+        <div class="ac-ico">🏃</div>
+        <div class="ac-lbl acl-run">Running</div>
+        <div class="ac-dsc acd-run">GPS ติดตาม · Pace<br>เส้นทาง · สรุป</div>
+        <span class="ac-tag act-run">📍 GPS Live</span>
+      </div>
+      <div class="acard ac-bike" onclick="goActivity('bike')">
+        <div class="ac-glow"></div>
+        <div class="ac-ico">🚴</div>
+        <div class="ac-lbl acl-bike">Cycling</div>
+        <div class="ac-dsc acd-bike">ความเร็ว · Route<br>Power Zone · แผนที่</div>
+        <span class="ac-tag act-bike">🚵 Bike GPS</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Inline shared store (no external dependency) ──
+const Store = (() => {
+  const K = { runs:'BB_Runs', bikes:'BB_Bikes', beast:'BB_State', drag:'GJL_State', mode:'BB_LastMode' };
+  const ld = (k, d=null) => { try { const v=localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
+  const sv = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+  const getMode = () => ld(K.mode, null) || localStorage.getItem('selectedMode');
+  const setMode = m => { sv(K.mode, m); localStorage.setItem('selectedMode', m); };
+  const stats = () => {
+    const runs = ld(K.runs, []), bikes = ld(K.bikes, []);
+    return {
+      runKm  : Math.round(runs.reduce((s,r)=>s+(r.distance||0)/1000,0)*10)/10,
+      bikeKm : Math.round(bikes.reduce((s,r)=>s+(r.distance||0)/1000,0)*10)/10,
+      hasRun : runs.length > 0,
+      hasBike: bikes.length > 0,
+    };
+  };
+  const hasRPGData = m => {
+    const k = m==='beastborne' ? K.beast : K.drag;
+    const v = ld(k);
+    return v && v.isSetup;
+  };
+  return { K, ld, sv, getMode, setMode, stats, hasRPGData };
+})();
+
+// Navigate to RPG mode
+function go(dest) {
+  Store.setMode(dest);
+  const wrap = document.querySelector('.wrap');
+  wrap.style.cssText = 'opacity:0;transition:opacity .2s ease';
+  setTimeout(() => { window.location.href = dest + '.html'; }, 200);
+}
+
+// Navigate to run/bike tracker
+function goActivity(type) {
+  // Save pending activity so run.html can auto-start the right mode
+  localStorage.setItem('BB_PendingActivity', type);
+  const wrap = document.querySelector('.wrap');
+  wrap.style.cssText = 'opacity:0;transition:opacity .2s ease';
+  setTimeout(() => { window.location.href = 'run.html'; }, 200);
+}
+
+function returnLast() {
+  const m = Store.getMode();
+  if (!m) return;
+  if (m === 'run') goActivity(localStorage.getItem('BB_PendingActivity') || 'run');
+  else go(m);
+}
+
+// Init UI
+function init() {
+  const s = Store.stats();
+
+  // Show activity stats if any data
+  if (s.hasRun || s.hasBike) {
+    const el = document.getElementById('astripStats');
+    el.classList.add('show');
+    document.getElementById('stRun').textContent  = s.runKm.toFixed(1)  + ' km วิ่ง';
+    document.getElementById('stBike').textContent = s.bikeKm.toFixed(1) + ' km ปั่น';
+  }
+
+  // Show returning badge
+  const m = Store.getMode();
+  if (m) {
+    const labels = { beastborne:'← BEASTBORNE', draglak:'← กูจะลากมึงเอง', run:'← RUN / RIDE' };
+    const lbl = labels[m];
+    // Only show if there's real data to return to
+    const hasData = m === 'run' ? (s.hasRun || s.hasBike) : Store.hasRPGData(m);
+    if (lbl && hasData) {
+      const badge = document.getElementById('retBadge');
+      badge.textContent = lbl;
+      badge.classList.add('on');
+    }
+  }
+}
+
+init();
+</script>
+</body>
+</html>

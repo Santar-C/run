@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<title>Run & Ride Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@700;900&family=Sarabun:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --bg:#000;--s1:#0a0a0a;--s2:#111;--s3:#1a1a1a;
+  --run:#ff6b2b;--run2:#ff3d00;
+  --bike:#22c0a0;--bike2:#00e5c0;--bike3:#007a60;
+  --gold:#c9a84c;--gold2:#f0d080;
+  --green:#22c060;--red:#ef3030;--amber:#ffb040;
+  --t1:#f0ece6;--t2:#706050;--t3:#302820;
+  --bdr:rgba(255,255,255,0.06);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'Sarabun',sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+.app{max-width:430px;margin:0 auto;height:100vh;position:relative;overflow:hidden}
+
+/* ── SCREENS ── */
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;transition:transform .38s cubic-bezier(.77,0,.175,1),opacity .35s ease;will-change:transform,opacity}
+.scr.off{transform:translateX(100%);opacity:0;pointer-events:none}
+.scr.back{transform:translateX(-100%);opacity:0;pointer-events:none}
+.scr.on{transform:translateX(0);opacity:1}
+
+/* ─── HOME ─── */
+#sHome{overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+.top-bar{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 12px;position:sticky;top:0;z-index:50;background:rgba(0,0,0,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr)}
+.top-logo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;display:flex;align-items:center;gap:6px}
+.back-rpg{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:50px;padding:6px 12px;cursor:pointer;font-size:10px;font-weight:700;color:var(--t2);text-decoration:none;transition:all .2s;-webkit-user-select:none;user-select:none}
+.back-rpg:active{background:rgba(255,255,255,.1);color:var(--t1)}
+.rpg-ico{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.rpg-ico.beast{background:rgba(201,168,76,.12)}
+.rpg-ico.drag{background:rgba(255,107,43,.1)}
+.rpg-ico.std{background:rgba(255,255,255,.05)}
+
+/* Stats hero */
+.stats-hero{padding:18px 18px 14px;position:relative;overflow:hidden}
+.stats-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(255,107,43,.05),transparent 70%);pointer-events:none}
+.hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:7px}
+.hstat{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:13px;padding:11px 8px;text-align:center}
+.hval{font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1}
+.hlbl{font-size:7px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.sync-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.18);border-radius:50px;padding:5px 12px;font-size:9px;font-weight:700;color:var(--gold);margin-top:10px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:sdot 2s ease infinite}
+@keyframes sdot{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* Mode cards */
+.mode-row{display:flex;gap:10px;padding:0 18px 16px}
+.mc{flex:1;border-radius:18px;padding:18px 14px;cursor:pointer;position:relative;overflow:hidden;transition:transform .2s;-webkit-user-select:none;user-select:none;border:2px solid transparent}
+.mc:active{transform:scale(.96)}
+.mc.run-mc{background:linear-gradient(135deg,rgba(255,107,43,.13),rgba(255,60,0,.05));border-color:rgba(255,107,43,.3)}
+.mc.bike-mc{background:linear-gradient(135deg,rgba(34,192,160,.13),rgba(0,229,192,.05));border-color:rgba(34,192,160,.28)}
+.mc-icon{font-size:38px;margin-bottom:8px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5))}
+.mc-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;margin-bottom:3px}
+.mc-run{color:var(--run)}
+.mc-bike{color:var(--bike)}
+.mc-desc{font-size:9px;color:var(--t2);line-height:1.55}
+.mc-tag{margin-top:8px;display:inline-block;font-size:7px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:50px}
+.mct-run{background:rgba(255,107,43,.09);border:1px solid rgba(255,107,43,.2);color:rgba(255,107,43,.7)}
+.mct-bike{background:rgba(34,192,160,.09);border:1px solid rgba(34,192,160,.2);color:rgba(34,192,160,.7)}
+
+/* Recent */
+.sec-head{font-size:8px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--t3);padding:0 18px;margin-bottom:9px;font-family:'Cinzel',serif;display:flex;align-items:center;gap:8px}
+.sec-head::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.05),transparent)}
+.act-card{background:var(--s1);border:1px solid var(--bdr);border-radius:15px;padding:13px 15px;margin:0 18px 8px;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none}
+.act-card:active{transform:scale(.98)}
+.act-card.arun{border-left:3px solid var(--run)}
+.act-card.abike{border-left:3px solid var(--bike)}
+.act-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px}
+.act-dist{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1}
+.act-drun{color:var(--run)}
+.act-dbike{color:var(--bike)}
+.act-date{font-size:8px;color:var(--t3);font-weight:700;margin-top:2px}
+.act-metric{font-family:'Bebas Neue',sans-serif;font-size:18px;line-height:1}
+.act-mlbl{font-size:7px;color:var(--t2);font-weight:700;text-align:right;margin-top:1px}
+.act-row{display:flex;gap:10px}
+.act-s{font-size:10px;font-weight:700;color:var(--t2)}
+.act-s span{color:var(--t1)}
+.empty-hint{text-align:center;padding:28px 20px;color:var(--t3);font-size:12px;font-weight:700;line-height:1.8}
+
+/* ─── TRACKING ─── */
+#sTrack{flex-direction:column;background:#000}
+#mapWrap{flex:1;position:relative;min-height:0}
+#map{width:100%;height:100%}
+
+/* Distance floating on map */
+.dist-float{position:absolute;bottom:195px;left:0;right:0;text-align:center;pointer-events:none;z-index:450}
+.dist-big{font-family:'Bebas Neue',sans-serif;font-size:74px;line-height:.95;letter-spacing:2px;transition:color .4s}
+.dist-lbl{font-size:8px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-top:2px}
+
+/* RPG overlay (beastborne mode) */
+.rpg-overlay{position:absolute;inset:0;pointer-events:none;z-index:440}
+.rpg-hud-top{padding:14px 16px 0;background:linear-gradient(180deg,rgba(3,3,10,.96) 0%,rgba(3,3,10,.6) 65%,transparent 100%);pointer-events:all}
+.rpg-eyebrow{font-family:'Cinzel',serif;font-size:8px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:rgba(201,168,76,.4);margin-bottom:3px}
+.rpg-hud-row{display:flex;justify-content:space-between;align-items:center}
+.rpg-name{font-family:'Cinzel',serif;font-size:14px;font-weight:900;color:var(--gold)}
+.rpg-class{font-size:7px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:3px 9px;border-radius:50px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);color:var(--gold);font-family:'Cinzel',serif}
+/* RPG distance (gold color overrides dist-big) */
+.rpg-dist-gold .dist-big{font-family:'Cinzel',serif!important;font-size:66px;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 18px rgba(201,168,76,.4))}
+.rpg-dist-gold .dist-lbl{color:rgba(201,168,76,.4)!important}
+/* Bike dist color */
+.bike-dist .dist-big{color:var(--bike)!important}
+
+/* Top-right status */
+.map-tr{position:absolute;top:14px;right:14px;z-index:500;display:flex;flex-direction:column;align-items:flex-end;gap:5px;pointer-events:all}
+.rec-pill{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:50px;font-size:8px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}
+.rp-live{background:rgba(239,48,48,.14);border:1px solid rgba(239,48,48,.28);color:var(--red)}
+.rp-pause{background:rgba(255,176,64,.14);border:1px solid rgba(255,176,64,.28);color:var(--amber)}
+.rdot{width:7px;height:7px;border-radius:50%}
+.rp-live .rdot{background:var(--red);animation:rb 1s ease infinite}
+.rp-pause .rdot{background:var(--amber)}
+@keyframes rb{0%,100%{opacity:1}50%{opacity:.15}}
+.gps-pill{display:flex;align-items:center;gap:4px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.1);border-radius:50px;padding:4px 9px}
+.gpsdot{width:7px;height:7px;border-radius:50%}
+.gok .gpsdot{background:var(--green);animation:gpa 2s ease infinite}
+.gweak .gpsdot{background:var(--amber)}
+.goff .gpsdot{background:var(--red)}
+@keyframes gpa{0%{box-shadow:0 0 0 0 rgba(34,192,96,.5)}70%{box-shadow:0 0 0 7px rgba(34,192,96,0)}100%{box-shadow:0 0 0 0 rgba(34,192,96,0)}}
+.gps-txt{font-size:8px;color:rgba(255,255,255,.4);font-weight:700}
+
+/* Bike speed gauge ring (visual flair) */
+.bike-gauge{position:absolute;bottom:210px;right:16px;z-index:460;pointer-events:none}
+.gauge-ring{width:56px;height:56px;position:relative}
+.gauge-ring svg{transform:rotate(-90deg)}
+.gauge-inner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.gauge-spd{font-family:'Bebas Neue',sans-serif;font-size:14px;line-height:1;color:var(--bike)}
+.gauge-lbl{font-size:6px;color:rgba(34,192,160,.5);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+
+/* Bottom panel */
+.track-panel{background:linear-gradient(0deg,#000 0%,rgba(0,0,0,.98) 70%,transparent 100%);padding:0 15px;position:relative;z-index:300}
+.metrics-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:8px 0}
+.mbox{background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:12px;padding:10px 6px;text-align:center}
+.mval{font-family:'Bebas Neue',sans-serif;font-size:25px;line-height:1}
+.mlbl{font-size:7px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.msub{font-size:7px;color:var(--t3);margin-top:1px;font-weight:600}
+.lap-row{display:flex;gap:5px;overflow-x:auto;padding:0 0 7px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.lap-row::-webkit-scrollbar{display:none}
+.lchip{flex-shrink:0;background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:5px 8px;font-size:8px;font-weight:700}
+.lchip-n{font-family:'Bebas Neue',sans-serif;font-size:13px;line-height:1;color:var(--t3)}
+.lchip-t{color:var(--t2)}
+.lchip-p{color:var(--amber)}
+.ctrl-row{display:flex;gap:8px}
+.cbtn{flex:1;border-radius:13px;border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;padding:13px;transition:all .2s;-webkit-user-select:none;user-select:none}
+.cbtn:active{transform:scale(.97)}
+.c-pause{background:var(--s2);border:1px solid rgba(255,255,255,.1);color:var(--amber)}
+.c-resume{background:linear-gradient(135deg,#005a30,var(--green));color:#fff}
+.c-stop{background:linear-gradient(135deg,#6a0000,var(--red));color:#fff}
+.track-footer{display:flex;justify-content:space-between;padding:7px 0 28px}
+.tf-btn{background:transparent;border:none;font-size:9px;color:var(--t3);font-weight:700;cursor:pointer;padding:4px;-webkit-user-select:none;user-select:none}
+.tf-btn:active{color:var(--t1)}
+
+/* ─── SUMMARY ─── */
+#sSummary{overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+.sum-scroll{padding:18px 18px 40px}
+.sum-hero{border-radius:20px;padding:20px;margin-bottom:13px;position:relative;overflow:hidden}
+.sh-run{background:linear-gradient(135deg,rgba(255,107,43,.12),rgba(255,60,0,.05));border:1px solid rgba(255,107,43,.3)}
+.sh-bike{background:linear-gradient(135deg,rgba(34,192,160,.12),rgba(0,229,192,.05));border:1px solid rgba(34,192,160,.28)}
+.sh-rpg{background:linear-gradient(135deg,rgba(201,168,76,.09),rgba(3,3,10,.96));border:1px solid rgba(201,168,76,.3)}
+.sh-rpg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 85% 50%,rgba(201,168,76,.05),transparent 70%);pointer-events:none}
+.sh-title{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:3px;margin-bottom:2px}
+.sh-rpg-title{font-family:'Cinzel',serif;font-size:18px;font-weight:900;letter-spacing:2px;color:var(--gold);margin-bottom:2px}
+.sh-date{font-size:8px;color:var(--t3);font-weight:700;margin-bottom:13px}
+.sh-dist{font-family:'Bebas Neue',sans-serif;font-size:78px;line-height:.9;margin-bottom:2px}
+.sh-dist-run{color:var(--run);filter:drop-shadow(0 0 14px rgba(255,107,43,.3))}
+.sh-dist-bike{color:var(--bike);filter:drop-shadow(0 0 14px rgba(34,192,160,.3))}
+.sh-dist-rpg{font-family:'Cinzel',serif!important;background:linear-gradient(90deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 14px rgba(201,168,76,.3))}
+.sh-dlbl{font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px}
+.sh-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.sbox{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:12px;padding:12px}
+.sv{font-family:'Bebas Neue',sans-serif;font-size:23px;line-height:1}
+.sl{font-size:7px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* XP reward */
+.xp-box{background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.03));border:1px solid rgba(201,168,76,.28);border-radius:15px;padding:15px;margin-bottom:12px;text-align:center}
+.xp-num{font-family:'Cinzel',serif;font-size:40px;font-weight:900;color:var(--gold);line-height:1;text-shadow:0 0 18px rgba(201,168,76,.4)}
+.xp-synced{font-size:10px;color:rgba(201,168,76,.5);margin-top:4px;font-weight:700}
+
+/* Verdict */
+.verdict{border-radius:13px;padding:13px;margin-bottom:12px}
+.vd-great{background:rgba(34,192,96,.07);border:1px solid rgba(34,192,96,.2)}
+.vd-ok{background:rgba(255,176,64,.07);border:1px solid rgba(255,176,64,.2)}
+.vd-miss{background:rgba(239,48,48,.07);border:1px solid rgba(239,48,48,.2)}
+.vd-emoji{font-size:26px;margin-bottom:5px}
+.vd-title{font-size:14px;font-weight:900;margin-bottom:4px}
+.vd-msg{font-size:10px;color:var(--t2);line-height:1.7}
+
+/* Map */
+#sumMapWrap{border-radius:13px;overflow:hidden;border:1px solid var(--bdr);margin-bottom:12px}
+#sumMap{height:175px;background:#080808}
+
+/* Lap table */
+.lap-tbl{background:var(--s1);border:1px solid var(--bdr);border-radius:13px;overflow:hidden;margin-bottom:12px}
+.lt-head{display:grid;grid-template-columns:32px 1fr 1fr 1fr;gap:4px;padding:8px 11px;background:var(--s2)}
+.lt-head span,.lt-row span{font-size:7px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:1px}
+.lt-row{display:grid;grid-template-columns:32px 1fr 1fr 1fr;gap:4px;padding:8px 11px;border-top:1px solid var(--bdr)}
+.lt-row span{font-size:11px;font-weight:700;color:var(--t1)}
+
+/* Elev */
+.elev-box{background:var(--s1);border:1px solid var(--bdr);border-radius:13px;padding:12px;margin-bottom:12px}
+
+/* Bike extra stats */
+.bike-zones{background:var(--s1);border:1px solid rgba(34,192,160,.2);border-radius:13px;padding:13px;margin-bottom:12px}
+.bz-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bdr)}
+.bz-row:last-child{border-bottom:none}
+.bz-bar{flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:100px;overflow:hidden}
+.bz-fill{height:100%;border-radius:100px;transition:width .8s ease}
+
+/* Actions */
+.act-row-btns{display:flex;gap:8px;margin-bottom:7px}
+.abtn{flex:1;border-radius:12px;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:800;padding:13px;transition:all .2s;-webkit-user-select:none;user-select:none}
+.abtn:active{transform:scale(.97)}
+.abtn-save-run{background:linear-gradient(135deg,var(--run2),var(--run));color:#fff}
+.abtn-save-bike{background:linear-gradient(135deg,var(--bike3),var(--bike));color:#fff}
+.abtn-share{background:var(--s2);border:1px solid var(--bdr);color:var(--t2)}
+.abtn-back{width:100%;background:transparent;border:1px solid var(--bdr);color:var(--t2)}
+.abtn-discard{width:100%;background:transparent;border:1px solid rgba(239,48,48,.2);color:var(--red)}
+
+/* ─── HISTORY ─── */
+#sHistory{overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+.hist-inner{padding:18px 18px 40px}
+.hist-tabs{display:flex;background:var(--s2);border:1px solid var(--bdr);border-radius:11px;padding:3px;gap:3px;margin-bottom:14px}
+.htab{flex:1;padding:8px;text-align:center;font-size:10px;font-weight:700;border-radius:8px;cursor:pointer;color:var(--t3);transition:all .2s;-webkit-user-select:none;user-select:none}
+.htab.on{background:var(--s3);color:var(--t1)}
+
+/* ─── COUNTDOWN ─── */
+#cdScreen{position:fixed;inset:0;max-width:430px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.96);z-index:9000;display:flex;align-items:center;justify-content:center;flex-direction:column}
+#cdScreen.hide{display:none}
+.cd-n{font-family:'Bebas Neue',sans-serif;font-size:130px;line-height:1;animation:cdz .85s ease both}
+@keyframes cdz{0%{transform:scale(2.2);opacity:0}100%{transform:scale(1);opacity:1}}
+.cd-sub{font-size:11px;font-weight:700;color:var(--t2);letter-spacing:3px;text-transform:uppercase;margin-top:5px}
+
+/* ─── TOAST ─── */
+#toast{position:fixed;top:62px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--s2);border:1px solid var(--bdr);color:var(--t1);padding:9px 18px;border-radius:50px;font-size:11px;font-weight:700;z-index:9999;opacity:0;pointer-events:none;transition:all .38s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:360px;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.ok{border-color:var(--green);color:var(--green)}
+#toast.fire{border-color:var(--run);color:var(--run)}
+#toast.bike{border-color:var(--bike);color:var(--bike)}
+#toast.xp{border-color:var(--gold);color:var(--gold)}
+
+/* ─── LEAFLET DARK + RPG TILE ─── */
+.leaflet-container{background:#060606!important}
+.leaflet-tile{filter:brightness(.65) saturate(.3)}
+.leaflet-container.rpg-map .leaflet-tile{filter:sepia(.9) hue-rotate(240deg) saturate(.25) brightness(.38)!important}
+.leaflet-container.bike-map .leaflet-tile{filter:brightness(.6) saturate(.5) hue-rotate(150deg)!important}
+.leaflet-control-zoom a{background:rgba(8,8,8,.9)!important;border-color:rgba(255,255,255,.1)!important;color:rgba(255,255,255,.5)!important}
+.leaflet-control-attribution{display:none!important}
+.territory-lbl{pointer-events:none;font-family:'Cinzel',serif;font-size:10px;font-weight:700;color:rgba(201,168,76,.65);text-shadow:0 0 8px rgba(0,0,0,.9),0 0 14px rgba(201,168,76,.25);letter-spacing:1.5px;white-space:nowrap;text-transform:uppercase}
+
+/* ─── SMARTWATCH ─── */
+@media(max-width:220px),(max-height:280px){
+  .mval{font-size:18px}.dist-big{font-size:50px!important}.sh-dist{font-size:52px}
+  .mc-desc,.mc-tag,.act-row{display:none}.top-bar{padding:9px 10px}
+  .rpg-hud-top{padding:8px 10px 0}
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+<div id="cdScreen" class="hide">
+  <div class="cd-n" id="cdN" style="color:var(--run)">3</div>
+  <div class="cd-sub" id="cdSub">เตรียมพร้อม...</div>
+</div>
+
+<div class="app">
+
+<!-- ══════════ HOME ══════════ -->
+<div class="scr on" id="sHome">
+  <div class="top-bar">
+    <div class="top-logo">
+      <span id="logoRun" style="color:var(--run)">RUN</span>
+      <span style="color:rgba(255,255,255,.15);margin:0 3px">/</span>
+      <span id="logoBike" style="color:var(--bike)">RIDE</span>
+    </div>
+    <div class="back-rpg" onclick="goBackRPG()">
+      <div class="rpg-ico std" id="rpgIcoEl">⚔️</div>
+      <span id="rpgLblEl">กลับหน้าหลัก</span>
+    </div>
+  </div>
+
+  <div class="stats-hero">
+    <div class="hero-grid">
+      <div class="hstat"><div class="hval" id="hRuns" style="color:var(--run)">0</div><div class="hlbl">วิ่งรวม</div></div>
+      <div class="hstat"><div class="hval" id="hRunKm" style="color:var(--amber)">0.0</div><div class="hlbl">km วิ่ง</div></div>
+      <div class="hstat"><div class="hval" id="hBikes" style="color:var(--bike)">0</div><div class="hlbl">ปั่นรวม</div></div>
+    </div>
+    <div class="hero-grid">
+      <div class="hstat"><div class="hval" id="hBikeKm" style="color:var(--bike2)">0.0</div><div class="hlbl">km ปั่น</div></div>
+      <div class="hstat"><div class="hval" id="hBestPace" style="color:var(--run)">--</div><div class="hlbl">Best Pace</div></div>
+      <div class="hstat"><div class="hval" id="hBestSpd" style="color:var(--bike)">--</div><div class="hlbl">Best km/h</div></div>
+    </div>
+    <div class="sync-pill hide" id="syncPill">
+      <div class="sync-dot"></div>
+      <span id="syncTxt">ซิงค์กับ RPG แล้ว</span>
+    </div>
+  </div>
+
+  <div class="mode-row">
+    <div class="mc run-mc" onclick="pickMode('run')">
+      <div class="mc-icon">🏃</div>
+      <div class="mc-title mc-run">Running</div>
+      <div class="mc-desc">GPS ติดตาม · Pace · HR Zone · เส้นทาง</div>
+      <div class="mc-tag mct-run">📍 GPS Live</div>
+    </div>
+    <div class="mc bike-mc" onclick="pickMode('bike')">
+      <div class="mc-icon">🚴</div>
+      <div class="mc-title mc-bike">Cycling</div>
+      <div class="mc-desc">ความเร็ว · Power Zone · ระยะทาง · แผนที่</div>
+      <div class="mc-tag mct-bike">🚵 Route Track</div>
+    </div>
+  </div>
+
+  <div class="sec-head">กิจกรรมล่าสุด</div>
+  <div id="recentList"><div class="empty-hint">ยังไม่มีกิจกรรม<br>กดวิ่งหรือปั่นเลย!</div></div>
+
+  <div style="padding:0 18px 28px;margin-top:4px">
+    <button onclick="showScr('sHistory')" style="width:100%;background:transparent;border:1px solid var(--bdr);color:var(--t2);font-size:11px;font-weight:700;padding:11px;border-radius:12px;cursor:pointer">ดูประวัติทั้งหมด →</button>
+  </div>
+</div>
+
+<!-- ══════════ TRACKING ══════════ -->
+<div class="scr off" id="sTrack">
+  <div id="mapWrap">
+    <div id="map"></div>
+
+    <!-- RPG overlay (beastborne only) -->
+    <div class="rpg-overlay hide" id="rpgOverlay">
+      <div class="rpg-hud-top">
+        <div class="rpg-eyebrow" id="rpgEyebrow">Scouting the Realm</div>
+        <div class="rpg-hud-row">
+          <div class="rpg-name" id="rpgNameEl">Knight</div>
+          <span class="rpg-class" id="rpgClassEl">⚔️ Squire</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating distance -->
+    <div class="dist-float" id="distFloat">
+      <div class="dist-big" id="distBig" style="color:var(--run)">0.00</div>
+      <div class="dist-lbl" id="distLbl">กิโลเมตร</div>
+    </div>
+
+    <!-- Bike speed gauge (ring) -->
+    <div class="bike-gauge hide" id="bikeGauge">
+      <div class="gauge-ring">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(34,192,160,.12)" stroke-width="4"/>
+          <circle cx="28" cy="28" r="22" fill="none" stroke="var(--bike)" stroke-width="4"
+            stroke-linecap="round" stroke-dasharray="138" id="gaugeFill" stroke-dashoffset="138"
+            style="transition:stroke-dashoffset .6s ease"/>
+        </svg>
+        <div class="gauge-inner">
+          <div class="gauge-spd" id="gaugeSpd">0</div>
+          <div class="gauge-lbl">km/h</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top-right status -->
+    <div class="map-tr">
+      <div class="rec-pill rp-live" id="recPill">
+        <div class="rdot"></div>
+        <span id="recLbl">LIVE</span>
+      </div>
+      <div class="gps-pill gok" id="gpsPill">
+        <div class="gpsdot"></div>
+        <span class="gps-txt" id="gpsTxt">GPS...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom panel -->
+  <div class="track-panel">
+    <div class="metrics-row">
+      <div class="mbox">
+        <div class="mval" id="mA" style="color:var(--amber)">--:--</div>
+        <div class="mlbl" id="mAlbl">Pace</div>
+        <div class="msub" id="mAsub">min/km</div>
+      </div>
+      <div class="mbox">
+        <div class="mval" id="mTime">00:00</div>
+        <div class="mlbl">เวลา</div>
+        <div class="msub">mm:ss</div>
+      </div>
+      <div class="mbox">
+        <div class="mval" id="mSpd" style="color:var(--t1)">--</div>
+        <div class="mlbl">Speed</div>
+        <div class="msub">km/h</div>
+      </div>
+    </div>
+    <div class="lap-row" id="lapRow" style="display:none"></div>
+    <div class="ctrl-row" style="margin-bottom:0">
+      <button class="cbtn c-pause" id="btnPR" onclick="togglePause()">⏸ หยุด</button>
+      <button class="cbtn c-stop" onclick="confirmStop()">⏹ จบ</button>
+    </div>
+    <div class="track-footer">
+      <button class="tf-btn" onclick="addLap()">+ Lap</button>
+      <button class="tf-btn" onclick="centerMe()">📍 ตำแหน่งฉัน</button>
+      <button class="tf-btn" onclick="toggleMapTheme()">🗺 สไตล์แผนที่</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SUMMARY ══════════ -->
+<div class="scr off" id="sSummary">
+  <div class="sum-scroll" id="sumContent"></div>
+</div>
+
+<!-- ══════════ HISTORY ══════════ -->
+<div class="scr off" id="sHistory">
+  <div class="hist-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:3px">HISTORY</div>
+      <button onclick="showScr('sHome')" style="background:transparent;border:none;color:var(--t2);font-size:22px;cursor:pointer">×</button>
+    </div>
+    <div class="hist-tabs">
+      <div class="htab on" id="htRun" onclick="switchHTab('run')">🏃 วิ่ง (<span id="cntRun">0</span>)</div>
+      <div class="htab" id="htBike" onclick="switchHTab('bike')">🚴 ปั่น (<span id="cntBike">0</span>)</div>
+    </div>
+    <div id="histList"></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+/* ═══════════════════════════════════════════
+   SHARED STORE (inline — no external JS needed)
+═══════════════════════════════════════════ */
+const Store = (() => {
+  const K = { runs:'BB_Runs', bikes:'BB_Bikes', beast:'BB_State', drag:'GJL_State', mode:'BB_LastMode' };
+  const ld = (k,d=null) => { try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch{return d;} };
+  const sv = (k,v) => { try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} };
+  const getRuns  = () => ld(K.runs,[]);
+  const getBikes = () => ld(K.bikes,[]);
+  const saveRun  = r => { const a=getRuns(); const i=a.findIndex(x=>x.id===r.id); i>=0?a[i]=r:a.unshift(r); sv(K.runs,a.slice(0,200)); syncRPG(); };
+  const saveBike = r => { const a=getBikes(); a.unshift(r); sv(K.bikes,a.slice(0,200)); syncRPG(); };
+  const delRun   = id => { sv(K.runs,getRuns().filter(r=>r.id!==id)); syncRPG(); };
+  const delBike  = id => { sv(K.bikes,getBikes().filter(r=>r.id!==id)); syncRPG(); };
+  const syncRPG = () => {
+    const runKm=getRuns().reduce((s,r)=>s+(r.distance||0)/1000,0);
+    const bikeKm=getBikes().reduce((s,r)=>s+(r.distance||0)/1000,0);
+    [K.beast,K.drag].forEach(k=>{ const s=ld(k); if(s){s._runKm=Math.round(runKm*10)/10;s._bikeKm=Math.round(bikeKm*10)/10;sv(k,s);} });
+  };
+  const stats = () => {
+    const runs=getRuns(), bikes=getBikes();
+    return {
+      totalRuns:runs.length, runKm:Math.round(runs.reduce((s,r)=>s+(r.distance||0)/1000,0)*10)/10,
+      totalBikes:bikes.length, bikeKm:Math.round(bikes.reduce((s,r)=>s+(r.distance||0)/1000,0)*10)/10,
+      bestRunPace:runs.reduce((b,r)=>r.avgSpeed>b?r.avgSpeed:b,0),
+      bestBikeSpd:bikes.reduce((b,r)=>r.avgSpeed>b?r.avgSpeed:b,0),
+      recent:[...runs.map(r=>({...r,_t:'run'})),...bikes.map(r=>({...r,_t:'bike'}))].sort((a,b)=>b.ts-a.ts).slice(0,6),
+    };
+  };
+  const getMode  = () => ld(K.mode,null)||localStorage.getItem('selectedMode');
+  const setMode  = m => { sv(K.mode,m); localStorage.setItem('selectedMode',m); };
+  return { K, ld, sv, getRuns, getBikes, saveRun, saveBike, delRun, delBike, stats, getMode, setMode, syncRPG };
+})();
+
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+let curMode='run'; // 'run'|'bike'
+let appMode='std'; // 'beast'|'drag'|'std'
+let rpgProf={name:'Knight',cls:'⚔️ Squire',lv:1};
+let histTab='run';
+let mapTheme='std'; // 'std'|'rpg'|'bike'
+
+let sess={
+  active:false,paused:false,type:'run',
+  startTime:null,pausedAt:null,pausedDur:0,
+  coords:[],dist:0,laps:[],
+  lapStartDist:0,lapStartElap:0,
+  speed:0,lastCoord:null,
+  watchId:null,timerIv:null,fakeIv:null,
+  gpsFix:false,gpsAcc:999,isRPG:false,
+};
+
+let tMap=null,tPoly=null,tMarker=null,tTile=null;
+let sMap=null;
+
+/* ═══════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════ */
+const $=id=>document.getElementById(id);
+let _tTO;
+function toast(msg,type='ok'){ const t=$('toast');t.textContent=msg;t.className=type+' on';clearTimeout(_tTO);_tTO=setTimeout(()=>t.classList.remove('on'),3300); }
+function fmtT(s){ const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=Math.floor(s%60); return h>0?`${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`; }
+function fmtPace(ms){ if(!ms||ms<.1)return'--:--'; const s=1000/ms,m=Math.floor(s/60),ss=Math.floor(s%60); return`${m}:${String(ss).padStart(2,'0')}`; }
+function fmtSpd(ms){ return(ms*3.6).toFixed(1); }
+function fmtDate(ts){ const d=new Date(ts),dy=['อา','จ','อ','พ','พฤ','ศ','ส']; return`${dy[d.getDay()]} ${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+function hav(a,b,c,d){ const R=6371000,dl=(c-a)*Math.PI/180,dg=(d-b)*Math.PI/180,x=Math.sin(dl/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dg/2)**2; return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
+function rolSpd(cs,n=7){ if(cs.length<2)return 0; const r=cs.slice(-n); const td=r.slice(1).reduce((s,c,i)=>s+hav(r[i].lat,r[i].lng,c.lat,c.lng),0),tt=(r[r.length-1].ts-r[0].ts)/1000; return tt>0?td/tt:0; }
+function elap(){ if(!sess.startTime)return 0; return Math.max(0,(Date.now()-sess.startTime-sess.pausedDur)/1000); }
+function elevGain(cs){ let g=0; for(let i=1;i<cs.length;i++){const d=(cs[i].alt||0)-(cs[i-1].alt||0);if(d>0)g+=d;} return Math.round(g); }
+function kcalRun(km){ return Math.round(km*62); }
+function kcalBike(km,sec){ return Math.round(km*22+(sec/3600)*120); }
+
+/* ═══════════════════════════════════════════
+   SCREEN STACK
+═══════════════════════════════════════════ */
+const SCRS=['sHome','sTrack','sSummary','sHistory'];
+function showScr(id){ SCRS.forEach(s=>{ const e=$(s); e.classList.remove('on','off','back'); e.classList.add(s===id?'on':'off'); }); if(id==='sHome')updateHome(); if(id==='sHistory')renderHistory(); }
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+function init(){
+  const m=Store.getMode()||'std';
+  appMode=m==='beastborne'?'beast':m==='draglak'?'drag':'std';
+
+  // Configure back button
+  if(appMode==='beast'){
+    $('rpgIcoEl').textContent='⚔️';$('rpgIcoEl').className='rpg-ico beast';
+    $('rpgLblEl').textContent='BEASTBORNE';
+    const bs=Store.ld(Store.K.beast);
+    if(bs){ const lv=bs.level||bs.userLevel||1; rpgProf={name:bs.knightName||bs.name||'Knight',cls:knightClass(lv),lv}; }
+  } else if(appMode==='drag'){
+    $('rpgIcoEl').textContent='💀';$('rpgIcoEl').className='rpg-ico drag';
+    $('rpgLblEl').textContent='กูจะลากมึงเอง';
+  } else {
+    $('rpgIcoEl').textContent='🏠';$('rpgIcoEl').className='rpg-ico std';
+    $('rpgLblEl').textContent='หน้าหลัก';
+  }
+  updateHome();
+}
+
+function knightClass(lv){
+  if(lv>=75)return'👑 Legendary Knight';if(lv>=50)return'🐉 Dragon Slayer';
+  if(lv>=35)return'✨ Paladin';if(lv>=20)return'🏇 Crusader';
+  if(lv>=10)return'⚔️ Knight';if(lv>=5)return'🛡️ Footman';
+  return'🗡️ Squire';
+}
+
+function goBackRPG(){
+  const m=Store.getMode();
+  if(m==='beastborne')window.location.href='beastborne.html';
+  else if(m==='draglak')window.location.href='draglak.html';
+  else window.location.href='index.html';
+}
+
+/* ═══════════════════════════════════════════
+   HOME
+═══════════════════════════════════════════ */
+function updateHome(){
+  const s=Store.stats();
+  $('hRuns').textContent=s.totalRuns;
+  $('hRunKm').textContent=s.runKm.toFixed(1);
+  $('hBikes').textContent=s.totalBikes;
+  $('hBikeKm').textContent=s.bikeKm.toFixed(1);
+  $('hBestPace').textContent=fmtPace(s.bestRunPace);
+  $('hBestSpd').textContent=s.bestBikeSpd>0?fmtSpd(s.bestBikeSpd):'--';
+
+  if(appMode!=='std'){
+    $('syncPill').classList.remove('hide');
+    $('syncTxt').textContent=`RPG Sync: วิ่ง ${s.runKm}km · ปั่น ${s.bikeKm}km`;
+  }
+
+  if(!s.recent.length){ $('recentList').innerHTML='<div class="empty-hint">ยังไม่มีกิจกรรม<br>กดวิ่งหรือปั่นได้เลย! 🏃🚴</div>'; return; }
+  $('recentList').innerHTML=s.recent.map(a=>actCardHTML(a)).join('');
+}
+
+function actCardHTML(a){
+  const km=(a.distance/1000).toFixed(2),isRun=a._t==='run';
+  const spd=isRun?fmtPace(a.avgSpeed):fmtSpd(a.avgSpeed);
+  const spdLbl=isRun?'min/km':'km/h';
+  const cal=isRun?kcalRun(a.distance/1000):kcalBike(a.distance/1000,a.duration);
+  return`<div class="act-card ${isRun?'arun':'abike'}" onclick="viewAct('${a._t}',${a.id})">
+    <div class="act-top">
+      <div>
+        <div class="act-dist ${isRun?'act-drun':'act-dbike'}">${km}<span style="font-size:16px;opacity:.4"> KM</span></div>
+        <div class="act-date">${isRun?'🏃':'🚴'} ${fmtDate(a.ts)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="act-metric" style="color:${isRun?'var(--amber)':'var(--bike2)'}">${spd}</div>
+        <div class="act-mlbl">${spdLbl}</div>
+      </div>
+    </div>
+    <div class="act-row">
+      <div class="act-s">⏱ <span>${fmtT(a.duration)}</span></div>
+      <div class="act-s">↑ <span>${a.elevGain||0}m</span></div>
+      <div class="act-s">🔥 <span>${cal}kcal</span></div>
+      ${a.laps?.length?`<div class="act-s">🔄 <span>${a.laps.length}lap</span></div>`:''}
+    </div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════
+   MODE PICK → COUNTDOWN
+═══════════════════════════════════════════ */
+function pickMode(type){
+  curMode=type;
+  const cd=$('cdScreen');
+  cd.classList.remove('hide');
+  const n=$('cdN');
+  if(type==='bike'){n.style.background='linear-gradient(90deg,var(--bike),var(--bike2))';n.style.webkitBackgroundClip='text';n.style.webkitTextFillColor='transparent';}
+  else if(appMode==='beast'){n.style.background='linear-gradient(90deg,var(--gold),var(--gold2))';n.style.webkitBackgroundClip='text';n.style.webkitTextFillColor='transparent';}
+  else{n.style.background='linear-gradient(90deg,var(--run),var(--amber))';n.style.webkitBackgroundClip='text';n.style.webkitTextFillColor='transparent';}
+  $('cdSub').textContent=type==='bike'?'เตรียมปั่นจักรยาน!':'เตรียมวิ่ง!';
+  let c=3; n.textContent=c;
+  const iv=setInterval(()=>{
+    c--;
+    if(c<=0){clearInterval(iv);n.textContent='GO!';setTimeout(()=>{cd.classList.add('hide');beginSess(type);},650);}
+    else{n.textContent=c;n.style.animation='none';void n.offsetWidth;n.style.animation='cdz .85s ease both';}
+  },1000);
+}
+
+/* ═══════════════════════════════════════════
+   MAP INIT
+═══════════════════════════════════════════ */
+function initMap(type,isRPG){
+  if(tMap){tMap.remove();tMap=null;}
+  tMap=L.map($('map'),{zoomControl:true,attributionControl:false,maxZoom:19});
+  tTile=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,subdomains:'abc'}).addTo(tMap);
+  const mc=$('map');
+  mc.classList.remove('rpg-map','bike-map');
+  if(isRPG)mc.classList.add('rpg-map');
+  else if(type==='bike')mc.classList.add('bike-map');
+
+  const col=isRPG?'#c9a84c':type==='bike'?'#22c0a0':'#ff6b2b';
+  tPoly=L.polyline([],{color:col,weight:5,opacity:.88,smoothFactor:1,lineCap:'round',lineJoin:'round'}).addTo(tMap);
+  const iconHTML=isRPG
+    ?`<div style="width:22px;height:22px;border-radius:50%;background:#c9a84c;border:3px solid rgba(255,255,255,.7);box-shadow:0 0 14px rgba(201,168,76,.8);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:sans-serif">⚔</div>`
+    :type==='bike'
+      ?`<div style="width:20px;height:20px;border-radius:50%;background:#22c0a0;border:3px solid rgba(255,255,255,.7);box-shadow:0 0 12px rgba(34,192,160,.8)"></div>`
+      :`<div style="width:20px;height:20px;border-radius:50%;background:#ff6b2b;border:3px solid rgba(255,255,255,.7);box-shadow:0 0 12px rgba(255,107,43,.8)"></div>`;
+  tMarker=L.marker([13.75,100.5],{icon:L.divIcon({className:'',html:iconHTML,iconSize:[22,22],iconAnchor:[11,11]}),zIndexOffset:1000}).addTo(tMap);
+  tMap.setView([13.75,100.5],16);
+  if(isRPG)setTimeout(()=>addTerritoryLabels(),3500);
+  mapTheme=isRPG?'rpg':type==='bike'?'bike':'std';
+}
+
+function initSumMap(act){
+  if(sMap){sMap.remove();sMap=null;}
+  if(!act.coords||act.coords.length<2)return;
+  sMap=L.map($('sumMap'),{zoomControl:false,attributionControl:false,dragging:true,scrollWheelZoom:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(sMap);
+  const mc=$('sumMap'),isRPG=act._rpg||false;
+  mc.classList.remove('rpg-map','bike-map');
+  if(isRPG)mc.classList.add('rpg-map');
+  else if(act._t==='bike')mc.classList.add('bike-map');
+  const col=act._t==='bike'?'#22c0a0':isRPG?'#c9a84c':'#ff6b2b';
+  const poly=L.polyline(act.coords.map(c=>[c.lat,c.lng]),{color:col,weight:4,opacity:.88}).addTo(sMap);
+  const c=act.coords;
+  const mk=(col2,bg)=>L.divIcon({className:'',html:`<div style="width:10px;height:10px;border-radius:50%;background:${bg};border:2px solid #fff;box-shadow:0 0 6px ${bg}88"></div>`,iconSize:[10,10],iconAnchor:[5,5]});
+  L.marker([c[0].lat,c[0].lng],{icon:mk('','#22c060')}).addTo(sMap);
+  L.marker([c[c.length-1].lat,c[c.length-1].lng],{icon:mk('','#ef3030')}).addTo(sMap);
+  sMap.fitBounds(poly.getBounds(),{padding:[16,16]});
+}
+
+function toggleMapTheme(){
+  const mc=$('map');
+  if(mapTheme==='std'||mapTheme==='bike'){mc.classList.add('rpg-map');mc.classList.remove('bike-map');mapTheme='rpg';toast('🗺 RPG Adventure Map','fire');}
+  else if(mapTheme==='rpg'){mc.classList.remove('rpg-map');mc.classList.add('bike-map');mapTheme='bike';toast('🗺 Cycling Map','bike');}
+  else{mc.classList.remove('rpg-map','bike-map');mapTheme='std';toast('🗺 Standard Map');}
+}
+
+function addTerritoryLabels(){
+  if(!tMap||!sess.lastCoord)return;
+  const spots=['ป่าต้องห้าม','เมืองสีทอง','หุบเขาศัตรู','ปราสาทมืด','ที่ราบแห่งการรบ','ถ้ำมังกร','ดินแดนหิมะ'];
+  const lat=sess.lastCoord.lat,lng=sess.lastCoord.lng;
+  for(let i=0;i<4;i++){
+    const label=spots[Math.floor(Math.random()*spots.length)];
+    L.marker([lat+(Math.random()-.5)*.012,lng+(Math.random()-.5)*.015],{
+      icon:L.divIcon({className:'territory-lbl',html:label,iconAnchor:[50,8]}),
+      interactive:false,zIndexOffset:-100
+    }).addTo(tMap);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   BEGIN SESSION
+═══════════════════════════════════════════ */
+function beginSess(type){
+  sess={
+    active:true,paused:false,type,
+    startTime:Date.now(),pausedAt:null,pausedDur:0,
+    coords:[],dist:0,laps:[],
+    lapStartDist:0,lapStartElap:0,
+    speed:0,lastCoord:null,
+    watchId:null,timerIv:null,fakeIv:null,
+    gpsFix:false,gpsAcc:999,
+    isRPG:appMode==='beast',
+  };
+  showScr('sTrack');
+  setTimeout(()=>{
+    initMap(type,sess.isRPG);
+    // UI adjustments per type & mode
+    const isRPG=sess.isRPG,isBike=type==='bike';
+    $('recLbl').textContent=isBike?'RIDING':'LIVE';
+    $('distBig').style.color=isBike?'var(--bike)':isRPG?'var(--gold)':'var(--run)';
+    $('distLbl').textContent=isBike?'กิโลเมตร (ปั่น)':'กิโลเมตร';
+    $('mAlbl').textContent=isBike?'Speed':'Pace';
+    $('mAsub').textContent=isBike?'km/h':'min/km';
+    $('mA').style.color=isBike?'var(--bike2)':'var(--amber)';
+    // RPG overlay
+    if(isRPG){
+      $('rpgOverlay').classList.remove('hide');
+      $('rpgNameEl').textContent=rpgProf.name;
+      $('rpgClassEl').textContent=rpgProf.cls;
+      $('rpgEyebrow').textContent=isBike?'ขี่ม้าออกสำรวจดินแดน':'ออกสำรวจดินแดนมืด';
+      // RPG dist styling
+      $('distFloat').classList.add('rpg-dist-gold');
+    } else {
+      $('rpgOverlay').classList.add('hide');
+      $('distFloat').classList.remove('rpg-dist-gold');
+    }
+    if(isBike){
+      $('distFloat').classList.add('bike-dist');
+      $('bikeGauge').classList.remove('hide');
+    } else {
+      $('distFloat').classList.remove('bike-dist');
+      $('bikeGauge').classList.add('hide');
+    }
+    // GPS
+    if(navigator.geolocation){
+      sess.watchId=navigator.geolocation.watchPosition(onGPS,onGPSErr,{enableHighAccuracy:true,timeout:10000,maximumAge:0});
+    } else startFakeGPS();
+  },400);
+  $('recPill').className='rec-pill rp-live';
+  $('btnPR').className='cbtn c-pause';$('btnPR').textContent='⏸ หยุด';
+  $('lapRow').style.display='none';
+  sess.timerIv=setInterval(liveUp,1000);
+}
+
+/* ═══════════════════════════════════════════
+   GPS
+═══════════════════════════════════════════ */
+function onGPS(pos){
+  const{latitude:lat,longitude:lng,altitude:alt,accuracy:acc}=pos.coords;
+  const ts=pos.timestamp;
+  sess.gpsAcc=acc;sess.gpsFix=true;
+  updateGPSUI(acc);
+  if(sess.paused||!sess.active)return;
+  if(acc>100&&sess.gpsFix&&sess.coords.length>0)return;
+  const coord={lat,lng,alt:alt||0,ts,acc};
+  if(sess.lastCoord){
+    const d=hav(sess.lastCoord.lat,sess.lastCoord.lng,lat,lng);
+    if(d<(sess.type==='bike'?3:2))return;
+    sess.dist+=d;
+  }
+  sess.coords.push(coord);sess.lastCoord=coord;
+  if(tPoly){
+    tPoly.setLatLngs(sess.coords.map(c=>[c.lat,c.lng]));
+    tMarker.setLatLng([lat,lng]);
+    if(sess.coords.length<=3)tMap.setView([lat,lng],17);
+  }
+  sess.speed=rolSpd(sess.coords);
+}
+function onGPSErr(e){ updateGPSUI(999); if(e.code===1)toast('ไม่อนุญาต GPS — Demo mode','fire'); startFakeGPS(); }
+function updateGPSUI(acc){
+  const p=$('gpsPill'),t=$('gpsTxt');
+  if(acc<20){p.className='gps-pill gok';t.textContent=`±${Math.round(acc)}m`;}
+  else if(acc<70){p.className='gps-pill gweak';t.textContent=`อ่อน±${Math.round(acc)}m`;}
+  else{p.className='gps-pill goff';t.textContent='ไม่แม่น';}
+}
+function startFakeGPS(){
+  if(sess.fakeIv)return;
+  let lt=13.75+Math.random()*.006,lg=100.5+Math.random()*.006,ang=Math.random()*Math.PI*2;
+  const baseSpd=sess.type==='bike'?0.00012:0.000048;
+  sess.fakeIv=setInterval(()=>{
+    if(!sess.active||sess.paused)return;
+    ang+=(Math.random()-.5)*.22;lt+=Math.cos(ang)*baseSpd*(0.8+Math.random()*.4);lg+=Math.sin(ang)*baseSpd*(0.8+Math.random()*.4);
+    onGPS({coords:{latitude:lt,longitude:lg,altitude:12+Math.sin(Date.now()/10000)*5,accuracy:14},timestamp:Date.now()});
+  },1200);
+}
+function centerMe(){ if(tMap&&sess.lastCoord)tMap.setView([sess.lastCoord.lat,sess.lastCoord.lng],17,{animate:true}); }
+
+/* ═══════════════════════════════════════════
+   LIVE UI
+═══════════════════════════════════════════ */
+function liveUp(){
+  if(!sess.active)return;
+  const e=elap(),km=sess.dist/1000;
+  $('mTime').textContent=fmtT(e);
+  $('distBig').textContent=km.toFixed(2);
+  const spd=fmtSpd(sess.speed);
+  if(sess.type==='bike'){
+    $('mA').textContent=spd;
+    $('mSpd').textContent=spd;
+    // Bike gauge
+    const maxSpd=60,spdKmh=sess.speed*3.6;
+    const pct=Math.min(1,spdKmh/maxSpd);
+    $('gaugeFill').style.strokeDashoffset=138-(138*pct);
+    $('gaugeSpd').textContent=spdKmh.toFixed(0);
+  } else {
+    $('mA').textContent=fmtPace(sess.speed);
+    $('mSpd').textContent=spd;
+  }
+  // RPG lore hints
+  if(sess.isRPG&&Math.floor(km)>0&&sess.coords.length%40===0){
+    const lore=['ตรวจพบศัตรู!','พบดินแดนใหม่','ใกล้ปราสาทแล้ว','ระวัง! มังกรอยู่ใกล้'];
+    $('rpgEyebrow').textContent=lore[Math.floor(Math.random()*lore.length)];
+    setTimeout(()=>{if($('rpgEyebrow'))$('rpgEyebrow').textContent=sess.type==='bike'?'ขี่ม้าออกสำรวจ':'ออกสำรวจดินแดนมืด';},3000);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   LAP
+═══════════════════════════════════════════ */
+function addLap(){
+  const e=elap(),lapDist=sess.dist-sess.lapStartDist,lapT=e-sess.lapStartElap;
+  sess.laps.push({num:sess.laps.length+1,dist:lapDist,time:lapT,spd:lapT>0?lapDist/lapT:0});
+  sess.lapStartDist=sess.dist;sess.lapStartElap=e;
+  renderLapChips();toast(`Lap ${sess.laps.length} ✓`,'ok');
+}
+function renderLapChips(){
+  const r=$('lapRow');r.style.display='flex';
+  const isBike=sess.type==='bike';
+  r.innerHTML=sess.laps.map(l=>`<div class="lchip"><div class="lchip-n">L${l.num}</div><div class="lchip-t">${fmtT(l.time)}</div><div class="lchip-p">${isBike?fmtSpd(l.spd)+'km/h':fmtPace(l.spd)+'/km'}</div></div>`).join('');
+}
+
+/* ═══════════════════════════════════════════
+   PAUSE / STOP
+═══════════════════════════════════════════ */
+function togglePause(){
+  if(sess.paused){
+    sess.pausedDur+=Date.now()-sess.pausedAt;sess.paused=false;
+    $('recPill').className='rec-pill rp-live';$('btnPR').className='cbtn c-pause';$('btnPR').textContent='⏸ หยุด';
+  } else {
+    sess.pausedAt=Date.now();sess.paused=true;
+    $('recPill').className='rec-pill rp-pause';$('btnPR').className='cbtn c-resume';$('btnPR').textContent='▶ ต่อ';
+  }
+}
+function confirmStop(){
+  if(sess.dist<50&&!confirm('ระยะน้อยมาก ยืนยันจบ?'))return;
+  endSess();
+}
+function endSess(){
+  sess.active=false;
+  clearInterval(sess.timerIv);clearInterval(sess.fakeIv);
+  if(sess.watchId)navigator.geolocation.clearWatch(sess.watchId);
+  const e=elap(),avg=e>0?sess.dist/e:0;
+  const act={id:Date.now(),ts:sess.startTime,_t:sess.type,_rpg:sess.isRPG,distance:sess.dist,duration:e,avgSpeed:avg,coords:sess.coords,laps:sess.laps,elevGain:elevGain(sess.coords)};
+  showSummary(act,true);
+}
+
+/* ═══════════════════════════════════════════
+   SUMMARY
+═══════════════════════════════════════════ */
+function showSummary(act,isNew=false){
+  showScr('sSummary');
+  const km=act.distance/1000,isRun=act._t==='run',isRPG=act._rpg||false;
+  const kmFmt=km.toFixed(2);
+  const cal=isRun?kcalRun(km):kcalBike(km,act.duration);
+
+  // Verdict
+  let vCls,vEmo,vTitle,vMsg;
+  if(isRun){
+    if(km>=10){vCls='vd-great';vEmo='🏆';vTitle='สุดยอด!';vMsg=isRPG?'อัศวินพิชิตเส้นทาง 10K! ปีศาจสั่นสะท้าน! ⚔️':'วิ่ง 10K+ ยอดเยี่ยม!';}
+    else if(km>=5){vCls='vd-great';vEmo='🔥';vTitle='แจ่มมาก!';vMsg=isRPG?'5K ผ่านแล้ว! บอสเริ่มหวาดกลัว!':'5K+ เยี่ยม! ฐานดีมาก';}
+    else if(km>=2){vCls='vd-ok';vEmo='💪';vTitle='ดี ไปต่อ!';vMsg=isRPG?'อัศวินยังต้องฝึก ออกรบให้ไกลกว่านี้!':'เริ่มต้นดี ครั้งหน้าดันให้ไกลขึ้น!';}
+    else{vCls='vd-miss';vEmo='😤';vTitle=isRPG?'อัศวินล้มเหลว!':'แค่นี้พอแล้วเหรอ?';vMsg=isRPG?'ดินแดนมืดไม่รับอัศวินที่อ่อนแอ! กลับออกรบใหม่!':'ระยะน้อยไป ครั้งหน้าดันอีก!';}
+  } else {
+    if(km>=30){vCls='vd-great';vEmo='🚴';vTitle='นักปั่นระดับเทพ!';vMsg=isRPG?'ม้าศึกพาอัศวินออกสำรวจ 30K! ดินแดนกว้างใหญ่!':'30K+ ระดับนักปั่นจริงจัง!';}
+    else if(km>=15){vCls='vd-great';vEmo='💚';vTitle='ดีมากเลย!';vMsg=isRPG?'สำรวจดินแดน 15K สำเร็จ! พบเส้นทางใหม่!':'15K+ ดีมาก ปั่นต่อไป!';}
+    else if(km>=5){vCls='vd-ok';vEmo='🌿';vTitle='เริ่มต้นดี!';vMsg=isRPG?'เริ่มออกสำรวจดินแดนแล้ว ปั่นต่อให้ไกลกว่านี้!':'5K+ ปั่นต่อไปนะ!';}
+    else{vCls='vd-miss';vEmo='😅';vTitle='ปั่นแป๊บเดียว?';vMsg=isRPG?'เส้นทางสั้นมาก! ดินแดนมืดรอการพิชิต!':'ระยะน้อยนิดหน่อย ปั่นต่อให้ไกลขึ้น!';}
+  }
+
+  // XP for RPG modes
+  let xpGained=0;
+  if(appMode==='beast'||appMode==='drag'){
+    xpGained=Math.floor(km*(isRun?3:2))+(act.laps?.length||0)*5+(km>=10?20:km>=5?10:km>=2?5:0);
+  }
+
+  // Hero box class
+  const shCls=isRPG?'sh-rpg':isRun?'sh-run':'sh-bike';
+  const distCls=isRPG?'sh-dist-rpg':isRun?'sh-dist-run':'sh-dist-bike';
+  const titleHTML=isRPG
+    ?`<div class="sh-rpg-title">${isRun?'⚔ QUEST COMPLETE':'🐴 RIDE COMPLETE'}</div>`
+    :`<div class="sh-title">${isRun?'🏃 RUN COMPLETE':'🚴 RIDE COMPLETE'}</div>`;
+
+  // Bike speed zones
+  const bikeZonesHTML = !isRun ? `
+    <div style="font-size:8px;font-weight:800;letter-spacing:3px;color:var(--t3);font-family:'Cinzel',serif;text-transform:uppercase;margin-bottom:8px">Power Zones (Estimated)</div>
+    <div class="bike-zones">
+      ${[['Recovery',act.avgSpeed<4?60:15,'var(--green)'],['Endurance',act.avgSpeed>=4&&act.avgSpeed<7?70:30,'var(--bike)'],['Tempo',act.avgSpeed>=7&&act.avgSpeed<9?80:20,'var(--amber)'],['Threshold',act.avgSpeed>=9?75:10,'var(--run)']].map(([z,pct,col])=>`
+        <div class="bz-row">
+          <div style="font-size:10px;font-weight:700;color:${col};width:85px">${z}</div>
+          <div class="bz-bar"><div class="bz-fill" style="width:${pct}%;background:${col}"></div></div>
+          <div style="font-size:10px;font-weight:700;color:${col};width:30px;text-align:right">${pct}%</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  // Lap table
+  const lapHTML=act.laps&&act.laps.length>0?`
+    <div style="font-size:8px;font-weight:800;letter-spacing:3px;color:var(--t3);font-family:'Cinzel',serif;text-transform:uppercase;margin-bottom:8px">Lap Analysis</div>
+    <div class="lap-tbl">
+      <div class="lt-head"><span>LAP</span><span>เวลา</span><span>${isRun?'Pace':'Speed'}</span><span>KM</span></div>
+      ${act.laps.map(l=>`<div class="lt-row">
+        <span style="font-family:'Bebas Neue';font-size:13px;color:var(--t3)">L${l.num}</span>
+        <span>${fmtT(l.time)}</span>
+        <span style="color:${isRun?'var(--amber)':'var(--bike2)'}">${isRun?fmtPace(l.spd):fmtSpd(l.spd)}</span>
+        <span style="color:${isRun?'var(--run)':'var(--bike)'}">${(l.dist/1000).toFixed(2)}</span>
+      </div>`).join('')}
+    </div>` : '';
+
+  const hasElev=act.coords&&act.coords.length>1&&act.elevGain>2;
+  const elevHTML=hasElev?`
+    <div class="elev-box">
+      <div style="font-size:8px;font-weight:800;letter-spacing:3px;color:var(--t3);font-family:'Cinzel',serif;text-transform:uppercase;margin-bottom:8px">Elevation Profile</div>
+      <canvas id="elevCvs" height="42" style="width:100%"></canvas>
+      <div style="font-size:8px;color:var(--t2);margin-top:5px">↑ Gain: <b style="color:var(--amber)">${act.elevGain}m</b></div>
+    </div>` : '';
+
+  $('sumContent').innerHTML=`
+    <div class="sum-hero ${shCls}">
+      ${titleHTML}
+      <div class="sh-date">${fmtDate(act.ts)}${isRPG?' · ⚔ BEASTBORNE':''}</div>
+      <div class="sh-dist ${distCls}">${kmFmt}</div>
+      <div class="sh-dlbl" style="color:${isRun?'var(--run)':'var(--bike)'}">${isRun?'กิโลเมตร':'กิโลเมตร (ปั่น)'}</div>
+      <div class="sh-grid">
+        <div class="sbox"><div class="sv">${fmtT(act.duration)}</div><div class="sl">เวลารวม</div></div>
+        <div class="sbox"><div class="sv">${isRun?fmtPace(act.avgSpeed):fmtSpd(act.avgSpeed)}</div><div class="sl">${isRun?'min/km':'km/h'}</div></div>
+        <div class="sbox"><div class="sv">${fmtSpd(act.avgSpeed)}</div><div class="sl">ความเร็ว km/h</div></div>
+        <div class="sbox"><div class="sv">${act.elevGain||0}</div><div class="sl">↑ Elevation (m)</div></div>
+        <div class="sbox"><div class="sv">${act.laps?.length||0}</div><div class="sl">Laps</div></div>
+        <div class="sbox"><div class="sv">${cal}</div><div class="sl">kcal (est)</div></div>
+      </div>
+    </div>
+
+    ${xpGained>0?`<div class="xp-box">
+      <div style="font-size:8px;font-weight:800;letter-spacing:2px;color:rgba(201,168,76,.4);text-transform:uppercase;font-family:'Cinzel';margin-bottom:3px">⚔ XP Reward</div>
+      <div class="xp-num">+${xpGained} XP</div>
+      <div class="xp-synced">เพิ่มใน ${appMode==='beast'?'BEASTBORNE':'กูจะลากมึงเอง'} อัตโนมัติ</div>
+    </div>`:''}
+
+    <div class="verdict ${vCls}">
+      <div class="vd-emoji">${vEmo}</div>
+      <div class="vd-title" style="color:${vCls==='vd-great'?'var(--green)':vCls==='vd-ok'?'var(--amber)':'var(--run)'}">${vTitle}</div>
+      <div class="vd-msg">${vMsg}</div>
+    </div>
+
+    <div style="font-size:8px;font-weight:800;letter-spacing:3px;color:var(--t3);font-family:'Cinzel',serif;text-transform:uppercase;margin-bottom:8px">เส้นทาง GPS</div>
+    <div id="sumMapWrap"><div id="sumMap"></div></div>
+
+    ${elevHTML}
+    ${bikeZonesHTML}
+    ${lapHTML}
+
+    ${isNew?`
+    <div class="act-row-btns">
+      <button class="abtn ${isRun?'abtn-save-run':'abtn-save-bike'}" onclick='_saveAct(${JSON.stringify(act).replace(/'/g,"&#39;")})'>💾 บันทึก</button>
+      <button class="abtn abtn-share" onclick='_shareAct(${JSON.stringify(act).replace(/'/g,"&#39;")})'>📤 แชร์</button>
+    </div>
+    <button class="abtn abtn-discard" style="margin-bottom:8px" onclick="_discardAct()">🗑 ไม่บันทึก</button>
+    `:`
+    <div class="act-row-btns">
+      <button class="abtn abtn-share" onclick='_shareActById("${act._t}",${act.id})'>📤 แชร์</button>
+      <button class="abtn abtn-back" onclick="showScr('sHistory')">← ประวัติ</button>
+    </div>
+    <button class="abtn abtn-discard" onclick="_delActConfirm('${act._t}',${act.id})">🗑 ลบกิจกรรมนี้</button>
+    `}
+  `;
+
+  setTimeout(()=>{ initSumMap(act); if(hasElev)drawElev(act.coords); },320);
+  if(isNew&&xpGained>0)injectXP(xpGained,act);
+}
+
+/* ── Inject XP into RPG state ── */
+function injectXP(xp,act){
+  const key=appMode==='beast'?Store.K.beast:Store.K.drag;
+  const state=Store.ld(key);
+  if(!state)return;
+  state.xp=(state.xp||0)+xp;
+  if(!state.history)state.history=[];
+  state.history.push({
+    dateRaw:act.ts,dateStr:fmtDate(act.ts),
+    weight:state.history.length>0?(state.history[state.history.length-1].weight||0):0,
+    dist:act.distance/1000,duration:act.duration,
+    rpe:6,sleep:7,diet:'perfect',
+    feedback:`${act._t==='bike'?'ปั่นจักรยาน':'วิ่ง'} ${(act.distance/1000).toFixed(2)} km · +${xp} XP`,
+    color:act._t==='bike'?'var(--bike)':'var(--sapphire)',emoji:act._t==='bike'?'🚴':'🏃',
+  });
+  Store.sv(key,state);
+  setTimeout(()=>toast(`⚔ +${xp} XP ซิงค์ RPG แล้ว!`,'xp'),1300);
+}
+
+/* ── Save / Discard / Delete ── */
+function _saveAct(act){
+  if(act._t==='bike')Store.saveBike(act); else Store.saveRun(act);
+  toast(act._t==='bike'?'🚴 บันทึกการปั่นแล้ว!':'🏃 บันทึกการวิ่งแล้ว!','ok');
+  showScr('sHome');
+}
+function _discardAct(){ if(confirm('ไม่บันทึกกิจกรรมนี้?'))showScr('sHome'); }
+function _delActConfirm(type,id){
+  if(!confirm('ลบกิจกรรมนี้?'))return;
+  type==='bike'?Store.delBike(id):Store.delRun(id);
+  toast('ลบแล้ว');showScr('sHistory');
+}
+function _shareAct(act){
+  const km=(act.distance/1000).toFixed(2),isRun=act._t==='run';
+  const txt=isRun
+    ?`🏃 วิ่ง ${km} KM | Pace ${fmtPace(act.avgSpeed)} min/km | ${fmtT(act.duration)}\n#RunTracker #BeastBorne #วิ่ง`
+    :`🚴 ปั่น ${km} KM | ${fmtSpd(act.avgSpeed)} km/h | ${fmtT(act.duration)}\n#RideTracker #BeastBorne #ปั่นจักรยาน`;
+  if(navigator.share)navigator.share({title:isRun?`วิ่ง ${km} KM`:`ปั่น ${km} KM`,text:txt}).catch(()=>copyTxt(txt));
+  else copyTxt(txt);
+}
+function _shareActById(type,id){
+  const a=type==='bike'?Store.getBikes().find(r=>r.id===id):Store.getRuns().find(r=>r.id===id);
+  if(a)_shareAct({...a,_t:type});
+}
+function copyTxt(t){ const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('📋 ก๊อปปี้แล้ว!','ok'); }
+
+/* ═══════════════════════════════════════════
+   HISTORY
+═══════════════════════════════════════════ */
+function switchHTab(tab){
+  histTab=tab;
+  $('htRun').classList.toggle('on',tab==='run');
+  $('htBike').classList.toggle('on',tab==='bike');
+  renderHistory();
+}
+function renderHistory(){
+  const runs=Store.getRuns(),bikes=Store.getBikes();
+  $('cntRun').textContent=runs.length;
+  $('cntBike').textContent=bikes.length;
+  const list=histTab==='run'?runs:bikes;
+  if(!list.length){$('histList').innerHTML=`<div class="empty-hint">ยังไม่มีประวัติ${histTab==='run'?'การวิ่ง':'การปั่น'}<br>กดเริ่มออกกำลังกายได้เลย!</div>`;return;}
+  $('histList').innerHTML=list.map(a=>actCardHTML({...a,_t:histTab})).join('');
+}
+function viewAct(type,id){
+  const a=type==='bike'?Store.getBikes().find(r=>r.id===id):Store.getRuns().find(r=>r.id===id);
+  if(!a)return;
+  showSummary({...a,_t:type},false);
+}
+
+/* ═══════════════════════════════════════════
+   ELEVATION CHART
+═══════════════════════════════════════════ */
+function drawElev(coords){
+  const cvs=$('elevCvs');if(!cvs)return;
+  const alts=coords.map(c=>c.alt||0),w=cvs.offsetWidth||320,h=42;
+  cvs.width=w;cvs.height=h;
+  const ctx=cvs.getContext('2d');
+  const mn=Math.min(...alts),mx=Math.max(...alts),rng=Math.max(mx-mn,1),pad=3;
+  const pts=alts.map((a,i)=>({x:pad+(i/Math.max(alts.length-1,1))*(w-pad*2),y:pad+(1-(a-mn)/rng)*(h-pad*2)}));
+  const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'rgba(255,176,64,.22)');g.addColorStop(1,'rgba(255,176,64,0)');
+  ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,h);ctx.lineTo(pts[0].x,h);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  ctx.beginPath();ctx.strokeStyle='#ffb040';ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';
+  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.stroke();
+}
+
+/* ═══════════════════════════════════════════
+   ABOUT HR (Heart Rate)
+   ────────────────────────────────────────
+   HR ไม่สามารถอ่านได้จาก GPS หรือเว็บแอพ
+   บนโทรศัพท์ทั่วไป เพราะ:
+   - iOS/Safari: ไม่รองรับ Web Bluetooth HR
+   - Android: ต้องใช้ Web Bluetooth API + อุปกรณ์
+     HR ที่ใช้ BLE GATT (Polar H10, Garmin HRM)
+   - Smartwatch WearOS: เปิดในบราวเซอร์ได้
+     แต่ HR API ก็ไม่เปิดให้ใช้ผ่าน Browser
+   ดังนั้น HR field ถูก set เป็น '--' เสมอ
+   และต้องกรอกเอง (manual) ใน Log หน้า RPG
+═══════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════ */
+
+// ── Auto-start if coming from RPG mode with pending activity ──
+const _pending = localStorage.getItem('BB_PendingActivity');
+if (_pending && (_pending === 'run' || _pending === 'bike')) {
+  localStorage.removeItem('BB_PendingActivity');
+  // Small delay so page renders first
+  setTimeout(() => pickMode(_pending), 800);
+}
+
+init();
+</script>
+</body>
+</html>
